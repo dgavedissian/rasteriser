@@ -5,8 +5,8 @@
 
 typedef struct
 {
-	vec3_t p;
-} vertex_t;
+	srVec3 p;
+} srVertex;
 
 #define SR_WIREFRAME 0
 #define SR_STATE_COUNT 1
@@ -24,6 +24,6 @@ void srEnd();
 
 // Draw all
 void srDrawAll();
-void srDrawTriangle(vertex_t *a, vertex_t *b, vertex_t *c);
+void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c);
 
 #endif

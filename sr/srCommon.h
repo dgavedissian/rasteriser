@@ -1,14 +1,15 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#ifndef _SR_COMMON_H_
-#define _SR_COMMON_H_
+#ifndef _SRCOMMON_H_
+#define _SRCOMMON_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <string.h>
 #include <assert.h>
-#include <math.h>
+
+#include "../kazmath/kazmath.h"
 
 // RGB <-> HEX
 #define RGBA(r, g, b, a) (((r) & 0xFF) << 24) + (((g) & 0xFF) << 16) + (((b) & 0xFF) << 8) + ((a) & 0xFF)

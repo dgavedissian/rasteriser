@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#ifndef _SR_CONTEXT_H_
-#define _SR_CONTEXT_H_
+#ifndef _SRCONTEXT_H_
+#define _SRCONTEXT_H_
 
 // Create context
 void srCreateContext(int width, int height);

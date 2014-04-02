@@ -1,8 +1,8 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#include "sr_common.h"
-#include "sr_context.h"
-#include "sr_2d.h"
+#include "srCommon.h"
+#include "srContext.h"
+#include "srShapes.h"
 
 void srLine(int x1, int y1, int x2, int y2, int colour)
 {

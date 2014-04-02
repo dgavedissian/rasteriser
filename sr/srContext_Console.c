@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#include "sr_common.h"
-#include "sr_context.h"
+#include "srCommon.h"
+#include "srContext.h"
 
 //==================================
 // Console Implementation

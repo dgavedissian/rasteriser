@@ -1,17 +1,14 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#include "sr.h"
-#include <unistd.h>
+#include "sr/sr.h"
+#include <unistd.h> // for sleep
 
 int main(int argc, char** argv)
 {
-	int width = 80, height = 25;
+	int width = 60, height = 20;
 	srCreateContext(width, height);
 	srInit3D();
 
-	int tick = 0;
-	int hw = width / 2, hh = height / 2;
-	int noSteps = 60;
 	while (1)
 	{
 		srClear(0);
@@ -31,6 +28,12 @@ int main(int argc, char** argv)
 		// Wait a bit
 		sleep(1);
 	}
+
+	// Clean-up
+	/*
+	srDestroy3D();
+	srDestroyContext();
+	*/
 
 	return 0;
 }
