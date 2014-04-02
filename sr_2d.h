@@ -3,6 +3,6 @@
 #ifndef _SR_2D_H_
 #define _SR_2D_H_
 
-void line(int x1, int y1, int x2, int y2, int colour);
+void srLine(int x1, int y1, int x2, int y2, int colour);
 
 #endif

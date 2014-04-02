@@ -48,7 +48,7 @@ char _convertPixel(int colour)
 	return pixelOut;
 }
 
-void createContext(int width, int height)
+void srCreateContext(int width, int height)
 {
 	assert(width > 0);
 	assert(height > 0);
@@ -58,15 +58,15 @@ void createContext(int width, int height)
 	_cxt.width = width;
 	_cxt.height = height;
 
-	clear(0);
+	srClear(0);
 }
 
-void clear(int colour)
+void srClear(int colour)
 {
 	memset(_cxt.pixels, _convertPixel(colour), _cxt.bytes);
 }
 
-void point(int x, int y, int colour)
+void srPoint(int x, int y, int colour)
 {
 	assert(x >= 0);
 	assert(x < _cxt.width);
@@ -76,7 +76,7 @@ void point(int x, int y, int colour)
 	_cxt.pixels[y * _cxt.width + x] = _convertPixel(colour);
 }
 
-void present()
+void srPresent()
 {
 	for (int y = 0; y < _cxt.height; ++y)
 	{

@@ -25,7 +25,9 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 
+#include "sr_math.h"
 #include "sr_context.h"
 #include "sr_2d.h"
+#include "sr_3d.h"
 
 #endif

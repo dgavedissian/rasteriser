@@ -4,7 +4,7 @@
 #include "sr_context.h"
 #include "sr_2d.h"
 
-void line(int x1, int y1, int x2, int y2, int colour)
+void srLine(int x1, int y1, int x2, int y2, int colour)
 {
 	int dx = x2 - x1;
 	int dy = y2 - y1;
@@ -17,7 +17,7 @@ void line(int x1, int y1, int x2, int y2, int colour)
 	int px = x1;
 	int py = y1;
 
-	point(px, py, colour);
+	srPoint(px, py, colour);
 	if (dxabs >= dyabs) // the line is more horizontal than vertical
 	{
 		for (int i = 0; i < dxabs; ++i)
@@ -29,7 +29,7 @@ void line(int x1, int y1, int x2, int y2, int colour)
 				py += sdy;
 			}
 			px += sdx;
-			point(px, py, colour);
+			srPoint(px, py, colour);
 		}
 	}
 	else // the line is more vertical than horizontal
@@ -43,7 +43,7 @@ void line(int x1, int y1, int x2, int y2, int colour)
 				px += sdx;
 			}
 			py += sdy;
-			point(px, py, colour);
+			srPoint(px, py, colour);
 		}
 	}
 }
