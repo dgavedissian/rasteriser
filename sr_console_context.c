@@ -3,16 +3,17 @@
 #include "sr_common.h"
 #include "sr_context.h"
 
+//==================================
 // Console Implementation
+//==================================
 
-// Current context
-struct context_t
+struct console_context_t
 {
 	char *pixels;
 	int bytes;
 	int width;
 	int height;
-} _cxt;
+} _console_cxt;
 
 char _convertPixel(int colour)
 {
@@ -53,35 +54,35 @@ void srCreateContext(int width, int height)
 	assert(width > 0);
 	assert(height > 0);
 
-	_cxt.bytes = sizeof(char) * width * height;
-	_cxt.pixels = (char*)malloc(_cxt.bytes);
-	_cxt.width = width;
-	_cxt.height = height;
+	_console_cxt.bytes = sizeof(char) * width * height;
+	_console_cxt.pixels = (char*)malloc(_console_cxt.bytes);
+	_console_cxt.width = width;
+	_console_cxt.height = height;
 
 	srClear(0);
 }
 
 void srClear(int colour)
 {
-	memset(_cxt.pixels, _convertPixel(colour), _cxt.bytes);
+	memset(_console_cxt.pixels, _convertPixel(colour), _console_cxt.bytes);
 }
 
 void srPoint(int x, int y, int colour)
 {
 	assert(x >= 0);
-	assert(x < _cxt.width);
+	assert(x < _console_cxt.width);
 	assert(y >= 0);
-	assert(y < _cxt.height);
+	assert(y < _console_cxt.height);
 
-	_cxt.pixels[y * _cxt.width + x] = _convertPixel(colour);
+	_console_cxt.pixels[y * _console_cxt.width + x] = _convertPixel(colour);
 }
 
 void srPresent()
 {
-	for (int y = 0; y < _cxt.height; ++y)
+	for (int y = 0; y < _console_cxt.height; ++y)
 	{
-		for (int x = 0; x < _cxt.width; ++x)
-			putchar(_cxt.pixels[y * _cxt.width + x]);
+		for (int x = 0; x < _console_cxt.width; ++x)
+			putchar(_console_cxt.pixels[y * _console_cxt.width + x]);
 		putchar('\n');
 	}
 }

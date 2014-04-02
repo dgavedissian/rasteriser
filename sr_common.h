@@ -25,4 +25,8 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 
+// Boolean values
+#define SR_TRUE 1
+#define SR_FALSE 0
+
 #endif
