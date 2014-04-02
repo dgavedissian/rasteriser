@@ -3,10 +3,10 @@
 #ifndef _SR_3D_H_
 #define _SR_3D_H_
 
-struct vertex_t
+typedef struct
 {
 	vec3_t p;
-};
+} vertex_t;
 
 #define SR_WIREFRAME 0
 #define SR_STATE_COUNT 1

@@ -9,15 +9,15 @@
 #define START_MESH_COUNT 10
 #define START_VERTEX_COUNT 10
 
-struct mesh_t
+typedef struct
 {
 	vertex_t *vertices;
 	int size;
 	int maxSize;
-};
+} mesh_t;
 
 // TODO: merge with sr_context.c's _cxt object
-struct objects_t
+struct context_t
 {
 	// Meshes
 	mesh_t *meshes;
