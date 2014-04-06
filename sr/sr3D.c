@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
 #include "srCommon.h"
-#include "srContext.h"
+#include "srFrameBuffer.h"
 #include "srShapes.h"
 #include "sr3D.h"
 
@@ -16,7 +16,7 @@ typedef struct
 } Mesh;
 
 // TODO: merge with sr_context.c's _cxt object
-struct Context
+struct
 {
 	// Meshes
 	Mesh *meshes;
@@ -112,11 +112,11 @@ void srDrawAll()
 
 		// Draw a single vertex
 		if (mesh->size == 1)
-			srPoint(mesh->vertices[0].p.x, mesh->vertices[0].p.y, 0xffffffff);
+			srDrawPixel(mesh->vertices[0].p.x, mesh->vertices[0].p.y, 0xffffffff);
 
 		// Draw a line
 		if (mesh->size == 2)
-			srLine(mesh->vertices[0].p.x, mesh->vertices[0].p.y, mesh->vertices[1].p.x, mesh->vertices[1].p.y, 0xffffffff);
+			srDrawLine(mesh->vertices[0].p.x, mesh->vertices[0].p.y, mesh->vertices[1].p.x, mesh->vertices[1].p.y, 0xffffffff);
 
 		// Draw a triangle strip
 		if (mesh->size > 2)
@@ -147,9 +147,9 @@ void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
 	// Draw wireframe
 	if (_cxt.states[SR_WIREFRAME] == SR_TRUE)
 	{
-		srLine(a->p.x, a->p.y, b->p.x, b->p.y, 0xffffffff);
-		srLine(b->p.x, b->p.y, c->p.x, c->p.y, 0xffffffff);
-		srLine(c->p.x, c->p.y, a->p.x, a->p.y, 0xffffffff);
+		srDrawLine(a->p.x, a->p.y, b->p.x, b->p.y, 0xffffffff);
+		srDrawLine(b->p.x, b->p.y, c->p.x, c->p.y, 0xffffffff);
+		srDrawLine(c->p.x, c->p.y, a->p.x, a->p.y, 0xffffffff);
 	}
 	else // Draw filled
 	{

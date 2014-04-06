@@ -3,14 +3,10 @@
 #ifndef _SRCONTEXT_H_
 #define _SRCONTEXT_H_
 
-// Create context
-void srCreateContext(int width, int height);
+// Internal: Create context
+void _srCreateContext(unsigned int width, unsigned int height);
 
-// Drawing
-void srClear(int colour);
-void srPoint(int x, int y, int colour);
-
-// Copy contents of buffer to screen 
-void srPresent();
+// Internal: Copy frame buffer to the screen - depending on context
+void _srPresent();
 
 #endif

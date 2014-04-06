@@ -5,7 +5,7 @@
 int main(int argc, char** argv)
 {
 	int width = 40, height = 24;
-	srCreateContext(width, height);
+	srCreateFrameBuffer(width, height);
 	srInit3D();
 
 	float angle = 0.0f;

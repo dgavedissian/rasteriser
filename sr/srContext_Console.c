@@ -1,90 +1,70 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
 #include "srCommon.h"
+#include "srFrameBuffer.h"
 #include "srContext.h"
-#include <unistd.h> // for sleep
 
 //==================================
 // Console Implementation
 //==================================
 
-struct srConsoleContext
+struct
 {
 	char *pixels;
-	int bytes;
-	int width;
-	int height;
-	int cursorPosition;
+	unsigned int width;
+	unsigned int height;
+	unsigned int lineCount;
 } _console_cxt;
+
+#define LEVEL(N, C) case N: pixelOut = C; break
+#define LEVEL_DEFAULT(C) default: pixelOut = C; break
 
 char _convertPixel(int colour)
 {
-	// Convert rgb into 4 brightness levels
-	int intensity = (GET_R(colour) + GET_G(colour) + GET_B(colour)) / 3;
-	int level = (int)((intensity / 255.0) * 4.0);
+	// Convert rgb into brightness levels
+	int intensity = (SR_GET_R(colour) + SR_GET_G(colour) + SR_GET_B(colour)) / 3;
+	int level = (int)((intensity / 255.0f) * 16.0f);
 
 	// Pixel output
-	char pixelOut = ' ';
+	char pixelOut;
 	switch (level)
 	{
-	case 1:
-		pixelOut = '-';
-		break;
-		
-	case 2:
-		pixelOut = '+';
-		break;
-		
-	case 3:
-		pixelOut = '#';
-		break;
-
-	case 4:
-		pixelOut = '@';
-		break;
-
-	default:
-		break;
+	LEVEL(1, '.');
+	LEVEL(2, ',');
+	LEVEL(3, ':');
+	LEVEL(4, '~');
+	LEVEL(5, '=');
+	LEVEL(6, '+');
+	LEVEL(7, '?');
+	LEVEL(8, 'I');
+	LEVEL(9, '7');
+	LEVEL(10, 'Z');
+	LEVEL(11, 'O');
+	LEVEL(12, '8');
+	LEVEL(13, 'N');
+	LEVEL(14, 'M');
+	LEVEL(15, '#');
+	LEVEL(16, '@');
+	LEVEL_DEFAULT(' ');
 	}
 
 	// Return character
 	return pixelOut;
 }
 
-void srCreateContext(int width, int height)
+void _srCreateContext(unsigned int width, unsigned int height)
 {
-	assert(width > 0);
-	assert(height > 0);
-
-	_console_cxt.bytes = sizeof(char) * width * height;
-	_console_cxt.pixels = (char*)malloc(_console_cxt.bytes);
+	_console_cxt.pixels = (char*)malloc(sizeof(char) * width * height);
 	_console_cxt.width = width;
 	_console_cxt.height = height;
-	_console_cxt.cursorPosition = 0;
-
-	srClear(0);
+	_console_cxt.lineCount = 0;
 }
 
-void srClear(int colour)
-{
-	memset(_console_cxt.pixels, _convertPixel(colour), _console_cxt.bytes);
-}
-
-void srPoint(int x, int y, int colour)
-{
-	assert(x >= 0);
-	assert(x < _console_cxt.width);
-	assert(y >= 0);
-	assert(y < _console_cxt.height);
-
-	_console_cxt.pixels[y * _console_cxt.width + x] = _convertPixel(colour);
-}
-
-void srPresent()
+void _srPresent()
 {
 	// Move cursor to the correct position
-	printf("\033[%dA", _console_cxt.cursorPosition);
-	_console_cxt.cursorPosition = 0;
+	printf("\033[%dA", _console_cxt.lineCount);
+	_console_cxt.lineCount = 0;
 
 	// Print everything
 	for (int y = 0; y < _console_cxt.height; ++y)
@@ -93,13 +73,10 @@ void srPresent()
 		{
 			// Char needs to be printed twice so the pixel aspect ratio
 			// is more square
-			char c = _console_cxt.pixels[y * _console_cxt.width + x];
+			char c = _convertPixel(_srGetPixels()[y * _srGetWidth() + x]);
 			putchar(c); putchar(c);
 		}
 		putchar('\n');
-		_console_cxt.cursorPosition++;
+		_console_cxt.lineCount++;
 	}
-
-	// Wait a bit - so the console doesnt update thousands of times a second
-	usleep(25 * 1000);
 }

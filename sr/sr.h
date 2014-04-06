@@ -4,7 +4,10 @@
 #define _SR_H_
 
 #include "srCommon.h"
-#include "srContext.h"
+
+#include "srContext.h" // internal only
+#include "srFrameBuffer.h"
+
 #include "srShapes.h"
 #include "sr3D.h"
 

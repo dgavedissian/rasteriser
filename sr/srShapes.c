@@ -1,23 +1,23 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
 #include "srCommon.h"
-#include "srContext.h"
+#include "srFrameBuffer.h"
 #include "srShapes.h"
 
-void srLine(int x1, int y1, int x2, int y2, int colour)
+void srDrawLine(int x1, int y1, int x2, int y2, int colour)
 {
 	int dx = x2 - x1;
 	int dy = y2 - y1;
 	int dxabs = abs(dx);
 	int dyabs = abs(dy);
-	int sdx = SGN(dx);
-	int sdy = SGN(dy);
+	int sdx = SR_SGN(dx);
+	int sdy = SR_SGN(dy);
 	int x = dyabs >> 1;
 	int y = dxabs >> 1;
 	int px = x1;
 	int py = y1;
 
-	srPoint(px, py, colour);
+	srDrawPixel(px, py, colour);
 	if (dxabs >= dyabs) // the line is more horizontal than vertical
 	{
 		for (int i = 0; i < dxabs; ++i)
@@ -29,7 +29,7 @@ void srLine(int x1, int y1, int x2, int y2, int colour)
 				py += sdy;
 			}
 			px += sdx;
-			srPoint(px, py, colour);
+			srDrawPixel(px, py, colour);
 		}
 	}
 	else // the line is more vertical than horizontal
@@ -43,7 +43,7 @@ void srLine(int x1, int y1, int x2, int y2, int colour)
 				px += sdx;
 			}
 			py += sdy;
-			srPoint(px, py, colour);
+			srDrawPixel(px, py, colour);
 		}
 	}
 }

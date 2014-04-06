@@ -3,6 +3,6 @@
 #ifndef _SRSHAPES_H_
 #define _SRSHAPES_H_
 
-void srLine(int x1, int y1, int x2, int y2, int colour);
+void srDrawLine(int x1, int y1, int x2, int y2, int colour);
 
 #endif
