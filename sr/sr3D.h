@@ -5,7 +5,7 @@
 
 typedef struct
 {
-	srVec3 p;
+	kmVec3 p;
 } srVertex;
 
 #define SR_WIREFRAME 0
@@ -19,7 +19,7 @@ void setState(int state, int value);
 
 // Drawing meshes
 void srBegin();
-void srVertex(float x, float y, float z);
+void srAddVertex(float x, float y, float z);
 void srEnd();
 
 // Draw all

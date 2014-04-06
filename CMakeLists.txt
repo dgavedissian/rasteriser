@@ -16,7 +16,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
 endif()
 
 # Set install location
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}")
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
 
 # Make sure executables are placed in the install directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX})

@@ -2,17 +2,19 @@
 // Copyright (c) David Avedissian 2014
 #include "srCommon.h"
 #include "srContext.h"
+#include <unistd.h> // for sleep
 
 //==================================
 // Console Implementation
 //==================================
 
-struct console_context_t
+struct srConsoleContext
 {
 	char *pixels;
 	int bytes;
 	int width;
 	int height;
+	int cursorPosition;
 } _console_cxt;
 
 char _convertPixel(int colour)
@@ -58,6 +60,7 @@ void srCreateContext(int width, int height)
 	_console_cxt.pixels = (char*)malloc(_console_cxt.bytes);
 	_console_cxt.width = width;
 	_console_cxt.height = height;
+	_console_cxt.cursorPosition = 0;
 
 	srClear(0);
 }
@@ -79,10 +82,24 @@ void srPoint(int x, int y, int colour)
 
 void srPresent()
 {
+	// Move cursor to the correct position
+	printf("\033[%dA", _console_cxt.cursorPosition);
+	_console_cxt.cursorPosition = 0;
+
+	// Print everything
 	for (int y = 0; y < _console_cxt.height; ++y)
 	{
 		for (int x = 0; x < _console_cxt.width; ++x)
-			putchar(_console_cxt.pixels[y * _console_cxt.width + x]);
+		{
+			// Char needs to be printed twice so the pixel aspect ratio
+			// is more square
+			char c = _console_cxt.pixels[y * _console_cxt.width + x];
+			putchar(c); putchar(c);
+		}
 		putchar('\n');
+		_console_cxt.cursorPosition++;
 	}
+
+	// Wait a bit - so the console doesnt update thousands of times a second
+	usleep(25 * 1000);
 }

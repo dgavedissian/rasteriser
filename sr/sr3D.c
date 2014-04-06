@@ -79,7 +79,7 @@ void srEnd()
 	_cxt.count++;
 }
 
-void srVertex(float x, float y, float z)
+void srAddVertex(float x, float y, float z)
 {
 	Mesh *mesh = &_cxt.meshes[_cxt.count];
 
@@ -94,7 +94,7 @@ void srVertex(float x, float y, float z)
 	}
 
 	// Add vertex
-	srVec3 *p = &mesh->vertices[mesh->size].p;
+	kmVec3 *p = &mesh->vertices[mesh->size].p;
 	p->x = x;
 	p->y = y;
 	p->z = z;
