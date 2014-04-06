@@ -3,13 +3,14 @@
 #include "srCommon.h"
 #include "srContext.h"
 #include "srFrameBuffer.h"
+#include "srRasteriser.h"
 #include <unistd.h> // for usleep
 
+// Frame buffer data
 struct
 {
 	uint32_t* pixels;
-	unsigned int width;
-	unsigned int height;
+	unsigned int width, height;
 } _fb;
 
 void srCreateFrameBuffer(unsigned int width, unsigned int height)
@@ -17,12 +18,18 @@ void srCreateFrameBuffer(unsigned int width, unsigned int height)
 	_fb.pixels = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
 	_fb.width = width;
 	_fb.height = height;
-
-	// Initialise frame buffer
 	srClear(0);
 
-	// Set up rendering context
 	_srCreateContext(width, height);
+	_srCreateRasteriser();
+}
+
+void srDestroyFrameBuffer()
+{
+	_srDestroyRasteriser();
+	_srDestroyContext();
+
+	free(_fb.pixels);
 }
 
 void srClear(uint32_t colour)
@@ -40,6 +47,7 @@ void srDrawPixel(unsigned int x, unsigned int y, uint32_t colour)
 
 void srPresent()
 {
+	_srRasteriseScene();
 	_srPresent();
 	usleep(25 * 1000);
 }

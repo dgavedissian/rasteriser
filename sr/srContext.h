@@ -6,6 +6,9 @@
 // Internal: Create context
 void _srCreateContext(unsigned int width, unsigned int height);
 
+// Internal: Destroy context
+void _srDestroyContext();
+
 // Internal: Copy frame buffer to the screen - depending on context
 void _srPresent();
 

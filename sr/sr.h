@@ -8,7 +8,6 @@
 #include "srContext.h" // internal only
 #include "srFrameBuffer.h"
 
-#include "srShapes.h"
-#include "sr3D.h"
+#include "srRasteriser.h"
 
 #endif

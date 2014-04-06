@@ -2,41 +2,38 @@
 // Copyright (c) David Avedissian 2014
 #include "sr/sr.h"
 
+#define WIDTH 40
+#define HEIGHT 24
+
 int main(int argc, char** argv)
 {
-	int width = 40, height = 24;
-	srCreateFrameBuffer(width, height);
-	srInit3D();
+	srCreateFrameBuffer(WIDTH, HEIGHT);
 
+	uint32_t colour = 0xffffffff;
 	float angle = 0.0f;
 	while (1)
 	{
 		srClear(0);
 
 		// Change position
-		angle += 0.06125f;
+		angle += 0.05f;
 		int radius = 3;
-		int centreX = 20 + (int)(sin(angle) * radius * 1.5f);
-		int centreY = 12 + (int)(cos(angle) * radius * 1.5f);
+		int centreX = WIDTH / 2 + (int)(sin(angle) * radius * 1.5f);
+		int centreY = HEIGHT / 2 + (int)(cos(angle) * radius * 1.5f);
 
 		// Draw a quad
 		srBegin();
-			srAddVertex(centreX - radius, centreY - radius, 0);
-			srAddVertex(centreX + radius, centreY - radius, 0);
-			srAddVertex(centreX - radius, centreY + radius, 0);
-			srAddVertex(centreX + radius, centreY + radius, 0);
+			srAddVertex(centreX - radius, centreY - radius, 0.0f, colour);
+			srAddVertex(centreX + radius, centreY - radius, 0.0f, colour);
+			srAddVertex(centreX - radius, centreY + radius, 0.0f, colour);
+			srAddVertex(centreX + radius, centreY + radius, 0.0f, colour);
 		srEnd();
 
 		// Present frame
-		srDrawAll();
 		srPresent();
 	}
 
 	// Clean-up
-	/*
-	srDestroy3D();
-	srDestroyContext();
-	*/
-
+	srDestroyFrameBuffer();
 	return 0;
 }
