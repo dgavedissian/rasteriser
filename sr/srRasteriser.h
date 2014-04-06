@@ -6,6 +6,7 @@
 typedef struct
 {
 	kmVec3 p;
+	uint32_t c;
 } srVertex;
 
 // Internal: Create the rasteriser

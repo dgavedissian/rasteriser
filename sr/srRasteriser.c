@@ -4,8 +4,8 @@
 #include "srFrameBuffer.h"
 #include "srRasteriser.h"
 
-#define START_MESH_COUNT 10
-#define START_VERTEX_COUNT 10
+#define INITIAL_MAX_MESH_COUNT 10
+#define INITIAL_MAX_VERTEX_COUNT 10
 
 // Mesh object
 typedef struct
@@ -53,13 +53,13 @@ void setRenderState(unsigned int state, unsigned int value)
 
 void srBegin()
 {
-    // Expand size of meshes array
+    // Expand mesh count if need be
     if (_r.count == _r.maxCount)
     {
         if (_r.meshes == NULL)
         {
             // Allocate initial list
-            _r.maxCount = START_MESH_COUNT;
+            _r.maxCount = INITIAL_MAX_MESH_COUNT;
             _r.meshes = (srMesh*)malloc(sizeof(srMesh) * _r.maxCount);
         }
         else
@@ -75,14 +75,14 @@ void srBegin()
 
     // Fill mesh data
     srMesh* mesh = &_r.meshes[_r.count];
-    mesh->maxSize = START_VERTEX_COUNT;
+    mesh->maxSize = INITIAL_MAX_VERTEX_COUNT;
     mesh->vertices = (srVertex*)malloc(sizeof(srVertex) * mesh->maxSize);
     mesh->size = 0;
 }
 
 void srEnd()
 {
-    // Increment size
+    // Increase mesh count
     _r.count++;
 }
 
@@ -90,7 +90,7 @@ void srAddVertex(float x, float y, float z, int colour)
 {
     srMesh *mesh = &_r.meshes[_r.count];
 
-    // Expand size of vertices array
+    // Expand size of vertices array if we need more
     if (mesh->size == mesh->maxSize)
     {
         mesh->maxSize *= 2;
@@ -100,13 +100,12 @@ void srAddVertex(float x, float y, float z, int colour)
         mesh->vertices = newVertices;
     }
 
-    // Add vertex
-    kmVec3* p = &mesh->vertices[mesh->size].p;
-    p->x = x;
-    p->y = y;
-    p->z = z;
-
-    // Increment vertex counter
+    // Set vertex data
+    srVertex* v = &mesh->vertices[mesh->size];
+    v->p.x = x;
+    v->p.y = y;
+    v->p.z = z;
+    v->c = colour;
     mesh->size++;
 }
 
