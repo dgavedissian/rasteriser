@@ -15,6 +15,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: None (CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
+# Build in gnu99 mode and link to math library
+if(CMAKE_COMPILER_IS_GNUCC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+endif()
+
 # Set install location
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
 
@@ -43,3 +48,6 @@ set(SOURCES ${SOURCES} ${MAIN_SOURCES})
 
 # Executable
 add_executable(sr ${SOURCES})
+if(CMAKE_COMPILER_IS_GNUCC)
+    target_link_libraries(sr m)
+endif()

@@ -5,9 +5,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "../kazmath/kazmath.h"
 
@@ -18,9 +19,6 @@
 #define SR_GET_G(colour) (((colour) >> 16) & 0xFF)
 #define SR_GET_B(colour) (((colour) >> 8) & 0xFF)
 #define SR_GET_A(colour) ((colour) & 0xFF)
-
-// Sign function
-#define SR_SGN(x) ((x) > 0 ? 1 : ((x) < 0 ? -1 : 0))
 
 // Min/Max
 #define SR_MIN(a, b) ((a) < (b) ? (a) : (b))
