@@ -32,7 +32,7 @@ void _srCreateRasteriser()
     _r.maxCount = 0;
 
     // Default render states
-    _r.states[SR_WIREFRAME] = SR_TRUE;
+    _r.states[SR_WIREFRAME] = SR_FALSE;
 }
 
 void _srDestroyRasteriser()
@@ -45,7 +45,7 @@ void _srDestroyRasteriser()
     }
 }
 
-void setRenderState(unsigned int state, unsigned int value)
+void srSetRenderState(unsigned int state, unsigned int value)
 {
     assert(state < SR_RENDER_STATE_COUNT);
     _r.states[state] = value;
@@ -109,60 +109,93 @@ void srAddVertex(float x, float y, float z, int colour)
     mesh->size++;
 }
 
-void srDrawLine(int x1, int y1, int x2, int y2, int colour)
+uint32_t lerpColour(uint32_t a, uint32_t b, float x)
 {
-    int dx = x2 - x1;
-    int dy = y2 - y1;
-    int dxabs = abs(dx);
-    int dyabs = abs(dy);
-    int sdx = SR_SGN(dx);
-    int sdy = SR_SGN(dy);
-    int x = dyabs >> 1;
-    int y = dxabs >> 1;
-    int px = x1;
-    int py = y1;
+    int ra = SR_GET_R(a), ga = SR_GET_G(a), ba = SR_GET_B(a), aa = SR_GET_A(a);
+    int rb = SR_GET_R(b), gb = SR_GET_G(b), bb = SR_GET_B(b), ab = SR_GET_A(b);
+    return SR_RGBA(
+        (int)(ra + (rb - ra) * x),
+        (int)(ga + (gb - ga) * x),
+        (int)(ba + (bb - ba) * x),
+        (int)(aa + (ab - aa) * x)
+        );
+}
 
-    srDrawPixel(px, py, colour);
-    if (dxabs >= dyabs) // the line is more horizontal than vertical
+// Pre: Vertices are assumed to be homogeneous coordinates
+void srDrawLine(srVertex* a, srVertex* b)
+{
+    float x1 = a->p.x, y1 = a->p.y;
+    float x2 = b->p.x, y2 = b->p.y;
+    uint32_t c1 = a->c, c2 = b->c;
+
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+
+    // TODO: fp comparison, global calamity ensues
+    if (dx == 0.0f && dy == 0.0f)
     {
-        for (int i = 0; i < dxabs; ++i)
+        srDrawPixel(x1, y1, a->c);
+        return;
+    }
+
+    if (fabs(dx) > fabs(dy))
+    {
+        float xmin, xmax;
+        if (x1 < x2)
         {
-            y += dyabs;
-            if (y >= dxabs)
-            {
-                y -= dxabs;
-                py += sdy;
-            }
-            px += sdx;
-            srDrawPixel(px, py, colour);
+            xmin = x1;
+            xmax = x2;
+        }
+        else
+        {
+            xmin = x2;
+            xmax = x1;
+        }
+
+        // Draw line in terms of y slope
+        float slope = dy / dx;
+        for (float x = xmin; x <= xmax; x += 1.0f)
+        {
+            float y = y1 + ((x - x1) * slope);
+            uint32_t colour = lerpColour(c1, c2, (x - x1) / dx);
+            srDrawPixel(x, y, colour);
         }
     }
-    else // the line is more vertical than horizontal
+    else
     {
-        for (int i = 0; i < dyabs; i++)
+        float ymin, ymax;
+        if (y1 < y2)
         {
-            x += dxabs;
-            if (x >= dyabs)
-            {
-                x -= dyabs;
-                px += sdx;
-            }
-            py += sdy;
-            srDrawPixel(px, py, colour);
+            ymin = y1;
+            ymax = y2;
+        }
+        else
+        {
+            ymin = y2;
+            ymax = y1;
+        }
+
+        // Draw line in terms of x slope
+        float slope = dx / dy;
+        for (float y = ymin; y <= ymax; y += 1.0f)
+        {
+            float x = x1 + ((y - y1) * slope);
+            uint32_t colour = lerpColour(c1, c2, (y - y1) / dy);
+            srDrawPixel(x, y, colour);
         }
     }
 }
 
 void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
 {
-    // Draw wireframe
+    // Edges: a-b, b-c, c-a
     if (_r.states[SR_WIREFRAME] == SR_TRUE)
     {
-        srDrawLine(a->p.x, a->p.y, b->p.x, b->p.y, 0xffffffff);
-        srDrawLine(b->p.x, b->p.y, c->p.x, c->p.y, 0xffffffff);
-        srDrawLine(c->p.x, c->p.y, a->p.x, a->p.y, 0xffffffff);
+        srDrawLine(a, b);
+        srDrawLine(b, c);
+        srDrawLine(c, a);
     }
-    else // Draw filled
+    else
     {
     }
 }
@@ -180,7 +213,7 @@ void _srRasteriseScene()
 
         // Draw a line
         if (mesh->size == 2)
-            srDrawLine(mesh->vertices[0].p.x, mesh->vertices[0].p.y, mesh->vertices[1].p.x, mesh->vertices[1].p.y, 0xffffffff);
+            srDrawLine(&mesh->vertices[0], &mesh->vertices[1]);
 
         // Draw a triangle strip
         if (mesh->size > 2)

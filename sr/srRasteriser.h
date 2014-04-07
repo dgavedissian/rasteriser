@@ -24,7 +24,7 @@ void _srDestroyRasteriser();
 #define SR_RENDER_STATE_COUNT 1
 
 // Set a render state
-void setRenderState(unsigned int state, unsigned int value);
+void srSetRenderState(unsigned int state, unsigned int value);
 
 // =========================
 // Immediate rendering
@@ -44,7 +44,7 @@ void srEnd();
 // =========================
 
 // Draw a line
-void srDrawLine(int x1, int y1, int x2, int y2, int colour);
+void srDrawLine(srVertex* a, srVertex* b);
 
 // Draw a triangle
 void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c);

@@ -8,29 +8,35 @@
 int main(int argc, char** argv)
 {
     srCreateFrameBuffer(WIDTH, HEIGHT);
+    srSetRenderState(SR_WIREFRAME, SR_TRUE);
 
     uint32_t colour = 0xffffffff;
-    float angle = 0.0f;
+    float r = 0.0f;
     while (1)
     {
         srClear(0);
 
-        // Change position
-        angle += 0.05f;
-        int radius = 3;
-        int centreX = WIDTH / 2 + (int)(sin(angle) * radius * 1.5f);
-        int centreY = HEIGHT / 2 + (int)(cos(angle) * radius * 1.5f);
+        // Calculate coordinates for triangle
+        const float size = 10.0f;
+        float x1 = (WIDTH / 2) + cosf(r - M_PI / 6.0) * size;
+        float y1 = (HEIGHT / 2) + sinf(r - M_PI / 6.0) * size;
+        float x2 = (WIDTH / 2) + cosf(r + M_PI / 2.0) * size;
+        float y2 = (HEIGHT / 2) + sinf(r + M_PI / 2.0) * size;
+        float x3 = (WIDTH / 2) + cosf(r + M_PI + M_PI / 6.0) * size;
+        float y3 = (HEIGHT / 2) + sinf(r + M_PI + M_PI / 6.0) * size;
 
-        // Draw a quad
+        // Draw it
         srBegin();
-            srAddVertex(centreX - radius, centreY - radius, 0.0f, colour);
-            srAddVertex(centreX + radius, centreY - radius, 0.0f, colour);
-            srAddVertex(centreX - radius, centreY + radius, 0.0f, colour);
-            srAddVertex(centreX + radius, centreY + radius, 0.0f, colour);
+        srAddVertex(x1, y1, 0.0f, SR_RGB(255, 0, 0));
+        srAddVertex(x2, y2, 0.0f, SR_RGB(0, 255, 0));
+        srAddVertex(x3, y3, 0.0f, SR_RGB(0, 0, 255));
         srEnd();
 
         // Present frame
         srPresent();
+
+        // Update rotation
+        r += M_PI / 2.0f * 0.025f;
     }
 
     // Clean-up
