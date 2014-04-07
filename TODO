@@ -1,9 +1,17 @@
+Rasteriser:
 - Points with radius n
 - Vertex buffers
 - Index buffers
 - Lighting
 - Texturing
 
+Terminal Context:
+- Colour
+
+SDL Context:
+- TODO
+
 Future:
 - FBO's?
-- Shaders?
+- Shaders (using Lua)?
+- OpenGL legacy -> SR translation layer? (+ GLSL bytecode -> SR shader translation?!)
