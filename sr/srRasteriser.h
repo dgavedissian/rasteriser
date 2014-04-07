@@ -26,13 +26,9 @@ void _srDestroyRasteriser();
 // Set a render state
 void srSetRenderState(unsigned int state, unsigned int value);
 
-// World Matrix
-void srSetWorldMatrix(kmMat4* matrix);
-kmMat4* srGetWorldMatrix();
-
-// View Matrix
-void srSetViewMatrix(kmMat4* matrix);
-kmMat4* srGetViewMatrix();
+// Model-view matrix
+void srSetModelViewMatrix(kmMat4* matrix);
+kmMat4* srGetModelViewMatrix();
 
 // Projection Matrix
 void srSetProjectionMatrix(kmMat4* matrix);

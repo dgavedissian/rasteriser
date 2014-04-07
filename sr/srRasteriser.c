@@ -13,7 +13,7 @@ struct
     unsigned int states[SR_RENDER_STATE_COUNT];
 
     // Matrices
-    kmMat4 world, view, proj;
+    kmMat4 modelView, proj;
 } _r;
 
 // Immediate mode data
@@ -30,8 +30,7 @@ void _srCreateRasteriser()
     _r.states[SR_WIREFRAME] = SR_FALSE;
 
     // Default matrices
-    kmMat4Identity(&_r.world);
-    kmMat4Identity(&_r.view);
+    kmMat4Identity(&_r.modelView);
     kmMat4Identity(&_r.proj);
 
     // Initialise immediate mode data
@@ -52,24 +51,14 @@ void srSetRenderState(unsigned int state, unsigned int value)
     _r.states[state] = value;
 }
 
-void srSetWorldMatrix(kmMat4* matrix)
+void srSetModelViewMatrix(kmMat4* matrix)
 {
-    kmMat4Assign(&_r.world, matrix);
+    kmMat4Assign(&_r.modelView, matrix);
 }
 
-kmMat4* srGetWorldMatrix()
+kmMat4* srGetModelViewMatrix()
 {
-    return &_r.world;
-}
-
-void srSetViewMatrix(kmMat4* matrix)
-{
-    kmMat4Assign(&_r.view, matrix);
-}
-
-kmMat4* srGetViewMatrix()
-{
-    return &_r.view;
+    return &_r.modelView;
 }
 
 void srSetProjectionMatrix(kmMat4* matrix)
@@ -114,16 +103,18 @@ void srEnd()
     // Render
     if (_im.size > 2)
     {
-        // Build WVP matrix
-        kmMat4 wvp;
-        kmMat4Multiply(&wvp, &_r.world, &_r.view);
-        kmMat4Multiply(&wvp, &wvp, &_r.proj);
+        // Build final transform matrix
+        kmMat4 t;
+        kmMat4Multiply(&t, &_r.proj, &_r.modelView);
 
         // =====================================
         // Stage 1: Transform vertices
         // =====================================
+
+        // kmVec3TransformCoord both transforms the vertex and divides
+        // each component by w
         for (int v = 0; v < _im.size; ++v)
-            kmVec3Transform(&_im.vertices[v].p, &_im.vertices[v].p, &wvp);
+            kmVec3TransformCoord(&_im.vertices[v].p, &_im.vertices[v].p, &t);
 
         // =====================================
         // Stage 2: Rasterise
@@ -131,7 +122,7 @@ void srEnd()
 
         // At the moment, we're rendering with the trangle strip
         // method
-        
+
         // Take first two vertices
         srVertex *v0 = &_im.vertices[0];
         srVertex *v1 = &_im.vertices[1];
@@ -164,11 +155,21 @@ uint32_t lerpColour(uint32_t a, uint32_t b, float x)
         );
 }
 
+float projXToScreen(float x)
+{
+    return (x + 1.0f) * 0.5f * _srGetWidth();
+}
+
+float projYToScreen(float y)
+{
+    return (-y + 1.0f) * 0.5f * _srGetHeight();
+}
+
 // Pre: Vertices are assumed to be homogeneous coordinates
 void srDrawLine(srVertex* a, srVertex* b)
 {
-    float x1 = a->p.x, y1 = a->p.y;
-    float x2 = b->p.x, y2 = b->p.y;
+    float x1 = projXToScreen(a->p.x), y1 = projYToScreen(a->p.y);
+    float x2 = projXToScreen(b->p.x), y2 = projYToScreen(b->p.y);
     uint32_t c1 = a->c, c2 = b->c;
 
     float dx = x2 - x1;
