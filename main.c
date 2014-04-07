@@ -15,7 +15,66 @@ void initScene(float fov, float zNear, float zFar)
     srSetProjectionMatrix(kmMat4PerspectiveProjection(&proj, fov, aspect, zNear, zFar));
 }
 
-void drawTriangle(float r)
+/*
+void drawCube()
+{
+    // Vertices
+    static const float vData[] = {
+        -1.0f, -1.0f, -1.0f, // triangle 1 : begin
+        -1.0f, -1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f, // triangle 1 : end
+        1.0f, 1.0f, -1.0f, // triangle 2 : begin
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f, // triangle 2 : end
+        1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, -1.0f,
+        1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f
+    };
+}
+*/
+
+void drawTriangle()
+{
+    // Calculate coordinates for triangle
+    float size = 10.0f;
+    float height = sqrt(size * size * 0.75f);
+
+    // Draw
+    srBegin();
+    srAddVertex(0.0f, height * 2.0f / 3.0f, 0.0f, SR_RGB(255, 0, 0));
+    srAddVertex(size * 0.5f, -height / 3.0f, 0.0f, SR_RGB(0, 255, 0));
+    srAddVertex(-size * 0.5f, -height / 3.0f, 0.0f, SR_RGB(0, 0, 255));
+    srEnd();
+}
+
+void drawScene(float r)
 {
     // Calculate model matrix
     kmMat4 m;
@@ -25,22 +84,13 @@ void drawTriangle(float r)
     kmMat4 mv;
     srSetModelViewMatrix(kmMat4Multiply(&mv, &view, &m));
 
-    // Calculate coordinates for triangle
-    float size = 20.0f;
-    float height = sqrt(size * size * 0.75f);
-
-    // Draw it
-    srBegin();
-    srAddVertex(0.0f, height * 2.0f / 3.0f, 0.0f, SR_RGB(255, 0, 0));
-    srAddVertex(-size * 0.5f, -height / 3.0f, 0.0f, SR_RGB(0, 255, 0));
-    srAddVertex(size * 0.5f, -height / 3.0f, 0.0f, SR_RGB(0, 0, 255));
-    srEnd();
+    // Draw
+    drawTriangle();
 }
 
 int main(int argc, char** argv)
 {
     srCreateFrameBuffer(WINDOW_WIDTH, WINDOW_HEIGHT);
-    srSetRenderState(SR_WIREFRAME, SR_TRUE);
 
     initScene(60.0f, 1.0f, 1000.0f);
 
@@ -53,14 +103,14 @@ int main(int argc, char** argv)
         kmVec3 centre;
         kmVec3 up;
         kmMat4LookAt(&view,
-            kmVec3Fill(&eye, 0.0f, 0.0f, 20.0f),
+            kmVec3Fill(&eye, 0.0f, 0.0f, 10.0f),
             kmVec3Fill(&centre, 0.0f, 0.0f, 0.0f),
             kmVec3Fill(&up, 0.0f, 1.0f, 0.0f)
             );
 
         // Draw scene
         srClear(0);
-        drawTriangle(r);
+        drawScene(r);
         srPresent();
 
         // Update rotation

@@ -114,7 +114,14 @@ void srEnd()
         // kmVec3TransformCoord both transforms the vertex and divides
         // each component by w
         for (int v = 0; v < _im.size; ++v)
+        {
+            // World space -> Normalised device coordinates
             kmVec3TransformCoord(&_im.vertices[v].p, &_im.vertices[v].p, &t);
+
+            // Normalised device coordinates -> Viewport coordinates
+            _im.vertices[v].p.x = (_im.vertices[v].p.x + 1.0f) * 0.5f * _srGetWidth();
+            _im.vertices[v].p.y = (-_im.vertices[v].p.y + 1.0f) * 0.5f * _srGetHeight();
+        }
 
         // =====================================
         // Stage 2: Rasterise
@@ -155,21 +162,11 @@ uint32_t lerpColour(uint32_t a, uint32_t b, float x)
         );
 }
 
-float projXToScreen(float x)
-{
-    return (x + 1.0f) * 0.5f * _srGetWidth();
-}
-
-float projYToScreen(float y)
-{
-    return (-y + 1.0f) * 0.5f * _srGetHeight();
-}
-
 // Pre: Vertices are assumed to be homogeneous coordinates
 void srDrawLine(srVertex* a, srVertex* b)
 {
-    float x1 = projXToScreen(a->p.x), y1 = projYToScreen(a->p.y);
-    float x2 = projXToScreen(b->p.x), y2 = projYToScreen(b->p.y);
+    float x1 = a->p.x, y1 = a->p.y;
+    float x2 = b->p.x, y2 = b->p.y;
     uint32_t c1 = a->c, c2 = b->c;
 
     float dx = x2 - x1;
@@ -230,16 +227,146 @@ void srDrawLine(srVertex* a, srVertex* b)
     }
 }
 
-void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
+typedef struct
 {
-    // Edges: a-b, b-c, c-a
-    if (_r.states[SR_WIREFRAME] == SR_TRUE)
+    srVertex* v1;
+    srVertex* v2;
+} srEdge;
+
+typedef struct
+{
+    float x1, x2;
+    uint32_t c1, c2;
+} srSpan;
+
+void buildEdge(srEdge* e, srVertex* v1, srVertex* v2)
+{
+    if (v1->p.y < v2->p.y)
     {
-        srDrawLine(a, b);
-        srDrawLine(b, c);
-        srDrawLine(c, a);
+        e->v1 = v1;
+        e->v2 = v2;
     }
     else
     {
+        e->v1 = v2;
+        e->v2 = v1;
+    }
+}
+
+void buildSpan(srSpan* s, float x1, float x2, uint32_t c1, uint32_t c2)
+{
+    if (x1 < x2)
+    {
+        s->x1 = x1;
+        s->x2 = x2;
+        s->c1 = c1;
+        s->c2 = c2;
+    }
+    else
+    {
+        s->x1 = x2;
+        s->x2 = x1;
+        s->c1 = c2;
+        s->c2 = c1;
+    }
+}
+
+void drawSpan(srSpan* span, int y)
+{
+    int xdiff = span->x2 - span->x1;
+    if (xdiff == 0)
+        return;
+
+    float factor = 0.0f;
+    float factorStep = 1.0f / (float)xdiff;
+
+    // Draw each pixel in the span
+    for (int x = span->x1; x < span->x2; ++x)
+    {
+        srDrawPixel(x, y, lerpColour(span->c1, span->c2, factor));
+        factor += factorStep;
+    }
+}
+
+void drawSpansBetweenEdges(srEdge* e1, srEdge* e2)
+{
+    // Calculate difference between the y coordinates
+    // of the first edge and return if 0
+    float e1ydiff = (float)(e1->v2->p.y - e1->v1->p.y);
+    if (e1ydiff == 0.0f)
+        return;
+
+    // Calculate difference between the y coordinates
+    // of the second edge and return if 0
+    float e2ydiff = (float)(e2->v2->p.y - e2->v1->p.y);
+    if(e2ydiff == 0.0f)
+        return;
+
+    // Calculate differences between the x coordinates
+    float e1xdiff = (float)(e1->v2->p.x - e1->v1->p.x);
+    float e2xdiff = (float)(e2->v2->p.x - e2->v1->p.x);
+
+    // Calculate factors to use for interpolation
+    // with the edges and the step values to increase
+    // them by after drawing each span
+    float factor1 = (float)(e2->v1->p.y - e1->v1->p.y) / e1ydiff;
+    float factorStep1 = 1.0f / e1ydiff;
+    float factor2 = 0.0f;
+    float factorStep2 = 1.0f / e2ydiff;
+
+    // Loop through the lines between the edges and draw spans
+    for (int y = e2->v1->p.y; y < e2->v2->p.y; ++y)
+    {
+        // Draw span
+        srSpan span;
+        buildSpan(&span,
+            e1->v1->p.x + (int)(e1xdiff * factor1),
+            e2->v1->p.x + (int)(e2xdiff * factor2),
+            lerpColour(e1->v1->c, e1->v2->c, factor1),
+            lerpColour(e2->v1->c, e2->v2->c, factor2));
+        drawSpan(&span, y);
+
+        // Increase factors
+        factor1 += factorStep1;
+        factor2 += factorStep2;
+    }
+}
+
+void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
+{
+    // Store the edges
+    srEdge edges[3];
+    buildEdge(&edges[0], a, b);
+    buildEdge(&edges[1], b, c);
+    buildEdge(&edges[2], c, a);
+
+    if (_r.states[SR_WIREFRAME] == SR_TRUE)
+    {
+        // Just draw the edges
+        for (int i = 0; i < 3; ++i)
+            srDrawLine(edges[i].v1, edges[i].v2);
+    }
+    else
+    {
+        int maxLength = 0;
+        int longEdge = 0;
+
+        // Find the edge with the greatest length in the y axis
+        for (int i = 0; i < 3; ++i)
+        {
+            int length = edges[i].v2->p.y - edges[i].v1->p.y;
+            if (length > maxLength)
+            {
+                maxLength = length;
+                longEdge = i;
+            }
+        }
+
+        int shortEdge1 = (longEdge + 1) % 3;
+        int shortEdge2 = (longEdge + 2) % 3;
+
+        // Draw spans between edges
+        drawSpansBetweenEdges(&edges[longEdge], &edges[shortEdge1]);
+        drawSpansBetweenEdges(&edges[longEdge], &edges[shortEdge2]);
     }
 }
