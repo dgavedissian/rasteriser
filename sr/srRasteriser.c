@@ -4,45 +4,46 @@
 #include "srFrameBuffer.h"
 #include "srRasteriser.h"
 
-#define INITIAL_MAX_MESH_COUNT 10
 #define INITIAL_MAX_VERTEX_COUNT 10
-
-// Mesh object
-typedef struct
-{
-    srVertex* vertices;
-    unsigned int size, maxSize;
-} srMesh;
 
 // Rasteriser data
 struct
 {
-    // Meshes
-    srMesh* meshes;
-    unsigned int count, maxCount;
-
     // Render states
     unsigned int states[SR_RENDER_STATE_COUNT];
+
+    // Matrices
+    kmMat4 world, view, proj;
 } _r;
+
+// Immediate mode data
+// TODO: eventually we can use some VBO here once thats implemented
+struct
+{
+    srVertex* vertices;
+    unsigned int size, maxSize;
+} _im;
 
 void _srCreateRasteriser()
 {
-    _r.meshes = NULL;
-    _r.count = 0;
-    _r.maxCount = 0;
-
     // Default render states
     _r.states[SR_WIREFRAME] = SR_FALSE;
+
+    // Default matrices
+    kmMat4Identity(&_r.world);
+    kmMat4Identity(&_r.view);
+    kmMat4Identity(&_r.proj);
+
+    // Initialise immediate mode data
+    _im.maxSize = INITIAL_MAX_VERTEX_COUNT;
+    _im.vertices = (srVertex*)malloc(sizeof(srVertex) * _im.maxSize);
+    _im.size = 0;
 }
 
 void _srDestroyRasteriser()
 {
-    if (_r.meshes != NULL)
-    {
-        for (int i = 0; i < _r.maxCount; ++i)
-            free(_r.meshes[i].vertices);
-        free(_r.meshes);
-    }
+    // Free immediate mode data
+    free(_im.vertices);
 }
 
 void srSetRenderState(unsigned int state, unsigned int value)
@@ -51,62 +52,104 @@ void srSetRenderState(unsigned int state, unsigned int value)
     _r.states[state] = value;
 }
 
-void srBegin()
+void srSetWorldMatrix(kmMat4* matrix)
 {
-    // Expand mesh count if need be
-    if (_r.count == _r.maxCount)
-    {
-        if (_r.meshes == NULL)
-        {
-            // Allocate initial list
-            _r.maxCount = INITIAL_MAX_MESH_COUNT;
-            _r.meshes = (srMesh*)malloc(sizeof(srMesh) * _r.maxCount);
-        }
-        else
-        {
-            // Double size of existing one
-            _r.maxCount *= 2;
-            srMesh* newList = (srMesh*)malloc(sizeof(srMesh) * _r.maxCount);
-            memcpy(newList, _r.meshes, sizeof(srMesh) * _r.count);
-            free(_r.meshes);
-            _r.meshes = newList;
-        }
-    }
-
-    // Fill mesh data
-    srMesh* mesh = &_r.meshes[_r.count];
-    mesh->maxSize = INITIAL_MAX_VERTEX_COUNT;
-    mesh->vertices = (srVertex*)malloc(sizeof(srVertex) * mesh->maxSize);
-    mesh->size = 0;
+    kmMat4Assign(&_r.world, matrix);
 }
 
-void srEnd()
+kmMat4* srGetWorldMatrix()
 {
-    // Increase mesh count
-    _r.count++;
+    return &_r.world;
+}
+
+void srSetViewMatrix(kmMat4* matrix)
+{
+    kmMat4Assign(&_r.view, matrix);
+}
+
+kmMat4* srGetViewMatrix()
+{
+    return &_r.view;
+}
+
+void srSetProjectionMatrix(kmMat4* matrix)
+{
+    kmMat4Assign(&_r.proj, matrix);
+}
+
+kmMat4* srGetProjectionMatrix()
+{
+    return &_r.proj;
+}
+
+void srBegin()
+{
+    // TODO: set primitive type..?
 }
 
 void srAddVertex(float x, float y, float z, int colour)
 {
-    srMesh *mesh = &_r.meshes[_r.count];
-
-    // Expand size of vertices array if we need more
-    if (mesh->size == mesh->maxSize)
+    // Expand size of vertices array if we need more by
+    // creating a larger vertex array then copy old data in
+    if (_im.size == _im.maxSize)
     {
-        mesh->maxSize *= 2;
-        srVertex* newVertices = (srVertex*)malloc(sizeof(srVertex) * mesh->maxSize);
-        memcpy(newVertices, mesh->vertices, sizeof(srVertex) * mesh->size);
-        free(mesh->vertices);
-        mesh->vertices = newVertices;
+        _im.maxSize *= 2;
+        srVertex* newVertices = (srVertex*)malloc(sizeof(srVertex) * _im.maxSize);
+        memcpy(newVertices, _im.vertices, sizeof(srVertex) * _im.size);
+        free(_im.vertices);
+        _im.vertices = newVertices;
     }
 
     // Set vertex data
-    srVertex* v = &mesh->vertices[mesh->size];
+    srVertex* v = &_im.vertices[_im.size];
     v->p.x = x;
     v->p.y = y;
     v->p.z = z;
     v->c = colour;
-    mesh->size++;
+    _im.size++;
+}
+
+void srEnd()
+{
+    // Render
+    if (_im.size > 2)
+    {
+        // Build WVP matrix
+        kmMat4 wvp;
+        kmMat4Multiply(&wvp, &_r.world, &_r.view);
+        kmMat4Multiply(&wvp, &wvp, &_r.proj);
+
+        // =====================================
+        // Stage 1: Transform vertices
+        // =====================================
+        for (int v = 0; v < _im.size; ++v)
+            kmVec3Transform(&_im.vertices[v].p, &_im.vertices[v].p, &wvp);
+
+        // =====================================
+        // Stage 2: Rasterise
+        // =====================================
+
+        // At the moment, we're rendering with the trangle strip
+        // method
+        
+        // Take first two vertices
+        srVertex *v0 = &_im.vertices[0];
+        srVertex *v1 = &_im.vertices[1];
+
+        // Cycle through remaining vertices
+        for (int v = 2; v < _im.size; ++v)
+        {
+            srVertex *vc = &_im.vertices[v];
+            srDrawTriangle(v0, v1, vc);
+
+            // Advance first two vertices
+            v0 = v1;
+            v1 = vc;
+        }
+    }
+
+    // Reset
+    _im.size = 0;
 }
 
 uint32_t lerpColour(uint32_t a, uint32_t b, float x)
@@ -198,43 +241,4 @@ void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
     else
     {
     }
-}
-
-void _srRasteriseScene()
-{
-    // For each mesh
-    for (int m = 0; m < _r.count; ++m)
-    {
-        srMesh *mesh = &_r.meshes[m];
-
-        // Draw a single vertex
-        if (mesh->size == 1)
-            srDrawPixel(mesh->vertices[0].p.x, mesh->vertices[0].p.y, 0xffffffff);
-
-        // Draw a line
-        if (mesh->size == 2)
-            srDrawLine(&mesh->vertices[0], &mesh->vertices[1]);
-
-        // Draw a triangle strip
-        if (mesh->size > 2)
-        {
-            // Take first two vertices
-            srVertex *v0 = &mesh->vertices[0];
-            srVertex *v1 = &mesh->vertices[1];
-
-            // Cycle through remaining vertices
-            for (int v = 2; v < mesh->size; ++v)
-            {
-                srVertex *vc = &mesh->vertices[v];
-                srDrawTriangle(v0, v1, vc);
-
-                // Advance first two vertices
-                v0 = v1;
-                v1 = vc;
-            }
-        }
-    }
-
-    // Clear meshes
-    _r.count = 0;
 }

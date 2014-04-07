@@ -47,7 +47,6 @@ void srDrawPixel(unsigned int x, unsigned int y, uint32_t colour)
 
 void srPresent()
 {
-    _srRasteriseScene();
     _srPresent();
     usleep(25 * 1000);
 }
