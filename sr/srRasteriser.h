@@ -35,8 +35,14 @@ void srSetProjectionMatrix(kmMat4* matrix);
 kmMat4* srGetProjectionMatrix();
 
 // =====================================
-// Immediate rendering
+// Rendering
 // =====================================
+
+#define SR_POINT_LIST 0
+#define SR_LINE_LIST 1
+#define SR_LINE_STRIP 2
+#define SR_TRIANGLE_LIST 3
+#define SR_TRIANGLE_STRIP 4
 
 // The interface for these functions is inspired by OpenGLs
 // legacy immedate mode rendering functions which don't
@@ -45,8 +51,7 @@ kmMat4* srGetProjectionMatrix();
 // OpenGL not existing in a CPU only renderer
 
 // Begin a new primitive
-// TODO: take a primitive type
-void srBegin();
+void srBegin(unsigned int primitiveType);
 
 // Add a vertex to the current primitive
 void srAddVertex(float x, float y, float z, int colour);

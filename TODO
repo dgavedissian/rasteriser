@@ -1,5 +1,3 @@
-- More primitive types
-	- Point List, Line List, Line Strip, Triangle List, Triangle Strip
 - Points with radius n
 - Vertex buffers
 - Index buffers

@@ -22,6 +22,7 @@ struct
 {
     srVertex* vertices;
     unsigned int size, maxSize;
+    unsigned int primitive;
 } _im;
 
 void _srCreateRasteriser()
@@ -71,9 +72,9 @@ kmMat4* srGetProjectionMatrix()
     return &_r.proj;
 }
 
-void srBegin()
+void srBegin(unsigned int primitiveType)
 {
-    // TODO: set primitive type..?
+    _im.primitive = primitiveType;
 }
 
 void srAddVertex(float x, float y, float z, int colour)
@@ -100,47 +101,85 @@ void srAddVertex(float x, float y, float z, int colour)
 
 void srEnd()
 {
-    // Render
-    if (_im.size > 2)
+    if (_im.size == 0)
+        return;
+
+    srVertex* v = _im.vertices;
+
+    // Build final transform matrix
+    kmMat4 t;
+    kmMat4Multiply(&t, &_r.proj, &_r.modelView);
+
+    // =====================================
+    // Stage 1: Transform vertices
+    // =====================================
+
+    // kmVec3TransformCoord both transforms the vertex and divides
+    // each component by w
+    for (int i = 0; i < _im.size; ++i)
     {
-        // Build final transform matrix
-        kmMat4 t;
-        kmMat4Multiply(&t, &_r.proj, &_r.modelView);
+        // World space -> Normalised device coordinates
+        kmVec3TransformCoord(&v[i].p, &v[i].p, &t);
 
-        // =====================================
-        // Stage 1: Transform vertices
-        // =====================================
+        // Normalised device coordinates -> Viewport coordinates
+        v[i].p.x = (v[i].p.x + 1.0f) * 0.5f * _srGetWidth();
+        v[i].p.y = (-v[i].p.y + 1.0f) * 0.5f * _srGetHeight();
+    }
 
-        // kmVec3TransformCoord both transforms the vertex and divides
-        // each component by w
-        for (int v = 0; v < _im.size; ++v)
-        {
-            // World space -> Normalised device coordinates
-            kmVec3TransformCoord(&_im.vertices[v].p, &_im.vertices[v].p, &t);
+    // =====================================
+    // Stage 2: Rasterise
+    // =====================================
 
-            // Normalised device coordinates -> Viewport coordinates
-            _im.vertices[v].p.x = (_im.vertices[v].p.x + 1.0f) * 0.5f * _srGetWidth();
-            _im.vertices[v].p.y = (-_im.vertices[v].p.y + 1.0f) * 0.5f * _srGetHeight();
-        }
+    // Point List
+    if (_im.primitive == SR_POINT_LIST)
+    {
+        for (int i = 0; i < _im.size; ++i)
+            srDrawPixel(v[i].p.x, v[i].p.y, v[i].c);
+    }
 
-        // =====================================
-        // Stage 2: Rasterise
-        // =====================================
+    // Line List
+    if (_im.primitive == SR_LINE_LIST && (_im.size & 2) == 0)
+    {
+        // Cycle through lines
+        for (int l = 0; l < _im.size / 2; ++l)
+            srDrawLine(&v[l * 2], &v[l * 2 + 1]);
+    }
 
-        // At the moment, we're rendering with the trangle strip
-        // method
-
-        // Take first two vertices
-        srVertex *v0 = &_im.vertices[0];
-        srVertex *v1 = &_im.vertices[1];
+    // Line Strip
+    if (_im.primitive == SR_LINE_STRIP && _im.size > 1)
+    {
+        // Take first vertex
+        srVertex* vp = &v[0];
 
         // Cycle through remaining vertices
-        for (int v = 2; v < _im.size; ++v)
+        for (int i = 1; i < _im.size; ++i)
         {
-            srVertex *vc = &_im.vertices[v];
-            srDrawTriangle(v0, v1, vc);
+            srVertex* vc = &v[i];
+            srDrawLine(vp, vc);
+            vp = vc;
+        }
+    }
 
-            // Advance first two vertices
+    // Triangle List
+    if (_im.primitive == SR_TRIANGLE_LIST && (_im.size % 3) == 0)
+    {
+        // Cycle through triangles
+        for (int t = 0; t < _im.size / 3; ++t)
+            srDrawTriangle(&v[t * 3], &v[t * 3 + 1], &v[t * 3 + 2]);
+    }
+
+    // Triangle Strip
+    if (_im.primitive == SR_TRIANGLE_STRIP && _im.size > 2)
+    {
+        // Take first two vertices
+        srVertex *v0 = &v[0];
+        srVertex *v1 = &v[1];
+
+        // Cycle through remaining vertices
+        for (int i = 2; i < _im.size; ++i)
+        {
+            srVertex *vc = &v[i];
+            srDrawTriangle(v0, v1, vc);
             v0 = v1;
             v1 = vc;
         }
