@@ -47,7 +47,7 @@ void srDrawPixel(unsigned int x, unsigned int y, uint32_t colour)
 
 void srPresent()
 {
-    _srPresent();
+    _srWriteFBToContext();
     usleep(25 * 1000);
 }
 

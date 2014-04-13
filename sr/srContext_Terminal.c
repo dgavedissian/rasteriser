@@ -46,7 +46,7 @@ void _srDestroyContext()
 {
 }
 
-void _srPresent()
+void _srWriteFBToContext()
 {
     // Move cursor to the correct position
     printf("\033[%dA", _term.lineCount);
