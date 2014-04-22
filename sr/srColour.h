@@ -37,4 +37,13 @@ srColour srColourFromHex(uint32_t hex);
 /// @return The hex representation of the colour object
 uint32_t srColourToHex(srColour* colour);
 
+/// Mix two colours together
+///
+/// @param out Colour to store the output of the mix operation
+/// @param a First colour
+/// @param b Second colour
+/// @param x Interpolation factor
+/// @return Simply returns the output colour pointer
+srColour* srColourMix(srColour* out, srColour* a, srColour* b, float x);
+
 #endif

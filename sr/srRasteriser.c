@@ -77,7 +77,7 @@ void srBegin(unsigned int primitiveType)
     _im.primitive = primitiveType;
 }
 
-void srAddVertex(float x, float y, float z, int colour)
+void _makeRoomForVertex()
 {
     // Expand size of vertices array if we need more by
     // creating a larger vertex array then copy old data in
@@ -89,15 +89,32 @@ void srAddVertex(float x, float y, float z, int colour)
         free(_im.vertices);
         _im.vertices = newVertices;
     }
+}
+
+void srAddVertex(float x, float y, float z, srColour colour)
+{
+    _makeRoomForVertex();
 
     // Set vertex data
     srVertex* v = &_im.vertices[_im.size];
-    v->p.x = x;
-    v->p.y = y;
-    v->p.z = z;
+    kmVec3Fill(&v->p, x, y, z);
     v->c = colour;
     _im.size++;
 }
+
+/*
+void srAddVertex(float x, float y, float z, float nx, float ny, float nz, srColour colour)
+{
+    _makeRoomForVertex();
+
+    // Set vertex data
+    srVertex* v = &_im.vertices[_im.size];
+    kmVec3Fill(&v->p, x, y, z);
+    kmVec3Fill(&v->n, nx, ny, nz);
+    v->c = colour;
+    _im.size++;
+}
+*/
 
 void srEnd()
 {
@@ -134,7 +151,7 @@ void srEnd()
     if (_im.primitive == SR_POINT_LIST)
     {
         for (int i = 0; i < _im.size; ++i)
-            srDrawPixel(v[i].p.x, v[i].p.y, v[i].c);
+            srDrawPixel(v[i].p.x, v[i].p.y, srColourToHex(&v[i].c));
     }
 
     // Line List
@@ -172,13 +189,13 @@ void srEnd()
     if (_im.primitive == SR_TRIANGLE_STRIP && _im.size > 2)
     {
         // Take first two vertices
-        srVertex *v0 = &v[0];
-        srVertex *v1 = &v[1];
+        srVertex* v0 = &v[0];
+        srVertex* v1 = &v[1];
 
         // Cycle through remaining vertices
         for (int i = 2; i < _im.size; ++i)
         {
-            srVertex *vc = &v[i];
+            srVertex* vc = &v[i];
             srDrawTriangle(v0, v1, vc);
             v0 = v1;
             v1 = vc;
@@ -189,24 +206,13 @@ void srEnd()
     _im.size = 0;
 }
 
-uint32_t lerpColour(uint32_t a, uint32_t b, float x)
-{
-    int ra = SR_GET_R(a), ga = SR_GET_G(a), ba = SR_GET_B(a), aa = SR_GET_A(a);
-    int rb = SR_GET_R(b), gb = SR_GET_G(b), bb = SR_GET_B(b), ab = SR_GET_A(b);
-    return SR_RGBA(
-        (int)(ra + (rb - ra) * x),
-        (int)(ga + (gb - ga) * x),
-        (int)(ba + (bb - ba) * x),
-        (int)(aa + (ab - aa) * x)
-        );
-}
-
 // Pre: Vertices are assumed to be homogeneous coordinates
 void srDrawLine(srVertex* a, srVertex* b)
 {
     float x1 = a->p.x, y1 = a->p.y;
     float x2 = b->p.x, y2 = b->p.y;
-    uint32_t c1 = a->c, c2 = b->c;
+    srColour* c1 = &a->c;
+    srColour* c2 = &b->c;
 
     float dx = x2 - x1;
     float dy = y2 - y1;
@@ -214,7 +220,7 @@ void srDrawLine(srVertex* a, srVertex* b)
     // TODO: fp comparison, global calamity ensues
     if (dx == 0.0f && dy == 0.0f)
     {
-        srDrawPixel(x1, y1, a->c);
+        srDrawPixel(x1, y1, srColourToHex(&a->c));
         return;
     }
 
@@ -237,8 +243,9 @@ void srDrawLine(srVertex* a, srVertex* b)
         for (float x = xmin; x <= xmax; x += 1.0f)
         {
             float y = y1 + ((x - x1) * slope);
-            uint32_t colour = lerpColour(c1, c2, (x - x1) / dx);
-            srDrawPixel(x, y, colour);
+            srColour colour;
+            srColourMix(&colour, c1, c2, (x - x1) / dx);
+            srDrawPixel(x, y, srColourToHex(&colour));
         }
     }
     else
@@ -260,8 +267,9 @@ void srDrawLine(srVertex* a, srVertex* b)
         for (float y = ymin; y <= ymax; y += 1.0f)
         {
             float x = x1 + ((y - y1) * slope);
-            uint32_t colour = lerpColour(c1, c2, (y - y1) / dy);
-            srDrawPixel(x, y, colour);
+            srColour colour;
+            srColourMix(&colour, c1, c2, (y - y1) / dy);
+            srDrawPixel(x, y, srColourToHex(&colour));
         }
     }
 }
@@ -275,7 +283,8 @@ typedef struct
 typedef struct
 {
     float x1, x2;
-    uint32_t c1, c2;
+    srColour* c1;
+    srColour* c2;
 } srSpan;
 
 void buildEdge(srEdge* e, srVertex* v1, srVertex* v2)
@@ -292,7 +301,7 @@ void buildEdge(srEdge* e, srVertex* v1, srVertex* v2)
     }
 }
 
-void buildSpan(srSpan* s, float x1, float x2, uint32_t c1, uint32_t c2)
+void buildSpan(srSpan* s, float x1, float x2, srColour* c1, srColour* c2)
 {
     if (x1 < x2)
     {
@@ -322,7 +331,9 @@ void drawSpan(srSpan* span, int y)
     // Draw each pixel in the span
     for (int x = span->x1; x < span->x2; ++x)
     {
-        srDrawPixel(x, y, lerpColour(span->c1, span->c2, factor));
+        srColour colour;
+        srColourMix(&colour, span->c1, span->c2, factor);
+        srDrawPixel(x, y, srColourToHex(&colour));
         factor += factorStep;
     }
 }
@@ -358,11 +369,13 @@ void drawSpansBetweenEdges(srEdge* e1, srEdge* e2)
     {
         // Draw span
         srSpan span;
+        srColour c1, c2;
+        srColourMix(&c1, &e1->v1->c, &e1->v2->c, factor1);
+        srColourMix(&c2, &e2->v1->c, &e2->v2->c, factor2);
         buildSpan(&span,
             e1->v1->p.x + (int)(e1xdiff * factor1),
             e2->v1->p.x + (int)(e2xdiff * factor2),
-            lerpColour(e1->v1->c, e1->v2->c, factor1),
-            lerpColour(e2->v1->c, e2->v2->c, factor2));
+            &c1, &c2);
         drawSpan(&span, y);
 
         // Increase factors

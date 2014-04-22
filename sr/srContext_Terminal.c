@@ -59,7 +59,7 @@ void _srWriteFBToContext()
         {
             // Figure out which character to use from the colour
             uint32_t colour = _srGetPixels()[y * _srGetWidth() + x];
-            char c = intensityToChar((SR_GET_R(colour) + SR_GET_G(colour) + SR_GET_B(colour)) / 3);
+            char c = intensityToChar((SR_HEX_GETR(colour) + SR_HEX_GETG(colour) + SR_HEX_GETB(colour)) / 3);
 
             // Calculate colour
             // TODO

@@ -9,7 +9,8 @@
 typedef struct
 {
 	kmVec3 p;
-	uint32_t c;
+	kmVec3 n;
+	srColour c;
 } srVertex;
 
 /// Internal: Set up the rasteriser for rendering
@@ -78,13 +79,24 @@ kmMat4* srGetProjectionMatrix();
 /// SR_TRIANGLE_STRIP
 void srBegin(unsigned int primitiveType);
 
-/// Add a vertex to the current primitive.
+/// Add an unlighted vertex to the current primitive.
 ///
-/// @param x X position of this vertex
-/// @param y Y position of this vertex
-/// @param z Z position of this vertex
-/// @param colour The colour of this vertex
-void srAddVertex(float x, float y, float z, int colour);
+/// @param x X position of the vertex
+/// @param y Y position of the vertex
+/// @param z Z position of the vertex
+/// @param colour The colour of the vertex
+void srAddVertex(float x, float y, float z, srColour colour);
+
+/// Add a lit vertex to the current primitive.
+///
+/// @param x X position of the vertex
+/// @param y Y position of the vertex
+/// @param z Z position of the vertex
+/// @param nx X direction of the vertex normal
+/// @param ny Y direction of the vertex normal
+/// @param nz Z direction of the vertex normal
+/// @param colour The colour of the vertex
+//void srAddVertex(float x, float y, float z, float nx, float ny, float nz, srColour colour);
 
 /// Rasterises this primitive and clears all added vertices.
 void srEnd();

@@ -33,3 +33,12 @@ uint32_t srColourToHex(srColour* colour)
 	int a = (int)(colour->a * 255.0f);
 	return SR_HEX_RGBA(r, g, b, a);
 }
+
+srColour* srColourMix(srColour* out, srColour* a, srColour* b, float x)
+{
+	out->r = SR_LERP(a->r, b->r, x);
+	out->g = SR_LERP(a->g, b->g, x);
+	out->b = SR_LERP(a->b, b->b, x);
+	out->a = SR_LERP(a->a, b->a, x);
+	return out;
+}
