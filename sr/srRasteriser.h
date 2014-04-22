@@ -25,7 +25,8 @@ void _srDestroyRasteriser();
 
 // Render states
 #define SR_WIREFRAME 0
-#define SR_RENDER_STATE_COUNT 1
+#define SR_LIGHTING 1
+#define SR_RENDER_STATE_COUNT 2
 
 /// Sets a render state which will be used for future render operations
 ///
@@ -59,7 +60,7 @@ void srSetProjectionMatrix(kmMat4* matrix);
 kmMat4* srGetProjectionMatrix();
 
 // =====================================
-// Rendering
+// Primitives
 // =====================================
 
 #define SR_POINT_LIST 0
@@ -100,6 +101,27 @@ void srAddVertex(float x, float y, float z, srColour colour);
 
 /// Rasterises this primitive and clears all added vertices.
 void srEnd();
+
+// =====================================
+// Lighting
+// =====================================
+
+// Light Types
+#define SR_LIGHT_NONE 0
+#define SR_LIGHT_DIRECTIONAL 1
+#define SR_LIGHT_POINT 2
+#define SR_LIGHT_SPOT 3
+
+/// Enables a directional light
+///
+/// @param id The id of the light to enable
+/// @param direction The direction of this light
+void srEnableDirectionalLight(unsigned int id, kmVec3* direction);
+
+/// Disable a light
+///
+/// @param id The id of the light to disable
+void srDisableLight(unsigned int id);
 
 // =====================================
 // Drawing

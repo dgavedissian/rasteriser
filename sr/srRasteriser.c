@@ -5,6 +5,7 @@
 #include "srRasteriser.h"
 
 #define INITIAL_MAX_VERTEX_COUNT 10
+#define MAX_LIGHT_COUNT 8
 
 // Rasteriser data
 struct
@@ -14,6 +15,16 @@ struct
 
     // Matrices
     kmMat4 modelView, proj;
+
+    // Lighting data
+    // If type == SR_LIGHT_DIRECTIONAL then position is treated as a direction
+    struct
+    {
+        int type;
+        kmVec3 position;
+
+        // 
+    } lights[MAX_LIGHT_COUNT];
 } _r;
 
 // Immediate mode data
@@ -29,6 +40,11 @@ void _srCreateRasteriser()
 {
     // Default render states
     _r.states[SR_WIREFRAME] = SR_FALSE;
+    _r.states[SR_LIGHTING] = SR_FALSE;
+
+    // Disable lights
+    for (int i = 0; i < MAX_LIGHT_COUNT; ++i)
+        _r.lights[i].type = SR_LIGHT_NONE;
 
     // Default matrices
     kmMat4Identity(&_r.modelView);
@@ -116,6 +132,21 @@ void srAddVertex(float x, float y, float z, float nx, float ny, float nz, srColo
 }
 */
 
+// TODO: Transforming should be mapping the input vertex structure to the
+// output vertex structure where the output components (x, y, z, lighting,
+// texCoord/colour) are then interpolated when rasterised, like a vertex shader
+//
+// For example, a programmable pipeline looks like:
+//
+// Vertices -> VERTEX PROGRAM -> Dev to VP -> Rasterise -> FRAGMENT PROGRAM
+//
+// sr should eventually support a programmable pipeline but for the time being
+// the VP and FP segments of the pipeline can be hard coded in this function
+// and srDrawLine/srDrawTriangle.
+//
+// An example of in/out declarations for vertex lighting:
+// Input Declaration: (position, normal, texCoord)
+// Output Declaration: (position, lighting, texCoord)
 void srEnd()
 {
     if (_im.size == 0)
@@ -204,6 +235,23 @@ void srEnd()
 
     // Reset
     _im.size = 0;
+}
+
+void srEnableDirectionalLight(unsigned int id, kmVec3* direction)
+{
+    if (id < MAX_LIGHT_COUNT)
+    {
+        _r.lights[id].type = SR_LIGHT_DIRECTIONAL;
+        kmVec3Assign(&_r.lights[id].position, direction);
+    }
+}
+
+void srDisableLight(unsigned int id)
+{
+    if (id < MAX_LIGHT_COUNT)
+    {
+        _r.lights[id].type = SR_LIGHT_NONE;
+    }
 }
 
 // Pre: Vertices are assumed to be homogeneous coordinates
