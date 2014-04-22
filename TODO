@@ -1,17 +1,19 @@
 Rasteriser:
-- Points with radius n
 - Vertex buffers
 - Index buffers
+- Input/Output vertex declarations
 - Lighting
 - Texturing
+- Points with radius n
 
 Terminal Context:
 - Colour
 
 SDL Context:
-- TODO
+- Context Creation
+- Fast pixel drawing
 
 Future:
-- FBO's?
-- Shaders (using Lua)?
-- OpenGL legacy -> SR translation layer? (+ GLSL bytecode -> SR shader translation?!)
+- FBO's
+- Shaders (using a special SR bytecode format)
+- GLSL 3.3+ -> SR bytecode compiler
