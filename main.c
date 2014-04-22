@@ -7,10 +7,9 @@
 
 kmMat4 view;
 
-void initScene(float fov, float zNear, float zFar)
+void initScene(float fov, float aspect, float zNear, float zFar)
 {
     // Calculate projection matrix
-    float aspect = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
     kmMat4 proj;
     srSetProjectionMatrix(kmMat4PerspectiveProjection(&proj, fov, aspect, zNear, zFar));
 }
@@ -88,7 +87,7 @@ int main(int argc, char** argv)
     // Initialise scene
     srCreateFrameBuffer(width, height);
     srSetRenderState(SR_WIREFRAME, SR_TRUE);
-    initScene(60.0f, 0.1f, 100.0f);
+    initScene(60.0f, (float)width / (float)height, 0.1f, 100.0f);
 
     // Enter rendering loop
     float r = 0.0f;
