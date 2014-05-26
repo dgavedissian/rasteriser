@@ -60,6 +60,25 @@ void srSetProjectionMatrix(kmMat4* matrix);
 kmMat4* srGetProjectionMatrix();
 
 // =====================================
+// Vertex Structure
+// =====================================
+
+// Vertex primitive types
+#define SR_VERT_POSITION 0
+#define SR_VERT_NORMAL 1
+#define SR_VERT_COLOUR 2
+#define SR_VERT_UV 3
+
+// Vertex declaration struct
+typedef struct
+{
+    uint32_t type, offset;
+} srVertexDecl;
+
+/// Sets the current vertex layout
+void srSetVertexLayout(srVertexDecl vertexDecl[]);
+
+// =====================================
 // Primitives
 // =====================================
 

@@ -88,6 +88,11 @@ kmMat4* srGetProjectionMatrix()
     return &_r.proj;
 }
 
+void srSetVertexLayout(srVertexDecl vertexDecl[])
+{
+    _r.vertexLayout = vertexDecl;
+}
+
 void srBegin(unsigned int primitiveType)
 {
     _im.primitive = primitiveType;
