@@ -16,6 +16,9 @@ struct
     // Matrices
     kmMat4 modelView, proj;
 
+    // Vertex Layout
+    srVertexDecl* vertexLayout;
+
     // Lighting data
     // If type == SR_LIGHT_DIRECTIONAL then position is treated as a direction
     struct

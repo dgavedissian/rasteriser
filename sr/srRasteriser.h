@@ -24,9 +24,12 @@ void _srDestroyRasteriser();
 // =====================================
 
 // Render states
-#define SR_WIREFRAME 0
-#define SR_LIGHTING 1
-#define SR_RENDER_STATE_COUNT 2
+enum
+{
+  SR_WIREFRAME = 0,
+  SR_LIGHTING,
+  SR_RENDER_STATE_COUNT
+};
 
 /// Sets a render state which will be used for future render operations
 ///
@@ -64,10 +67,13 @@ kmMat4* srGetProjectionMatrix();
 // =====================================
 
 // Vertex primitive types
-#define SR_VERT_POSITION 0
-#define SR_VERT_NORMAL 1
-#define SR_VERT_COLOUR 2
-#define SR_VERT_UV 3
+enum
+{
+  SR_VERT_POSITION  = 0x0001,
+  SR_VERT_NORMAL    = 0x0002,
+  SR_VERT_COLOUR    = 0x0004,
+  SR_VERT_UV        = 0x0008
+};
 
 // Vertex declaration struct
 typedef struct
@@ -82,11 +88,15 @@ void srSetVertexLayout(srVertexDecl vertexDecl[]);
 // Primitives
 // =====================================
 
-#define SR_POINT_LIST 0
-#define SR_LINE_LIST 1
-#define SR_LINE_STRIP 2
-#define SR_TRIANGLE_LIST 3
-#define SR_TRIANGLE_STRIP 4
+// Primitive types
+enum
+{
+  SR_POINT_LIST = 0,
+  SR_LINE_LIST,
+  SR_LINE_STRIP,
+  SR_TRIANGLE_LIST,
+  SR_TRIANGLE_STRIP
+};
 
 // The interface for these functions is inspired by OpenGLs legacy immedate mode
 // rendering functions which don't have much of a performance hit in a software
@@ -126,10 +136,13 @@ void srEnd();
 // =====================================
 
 // Light Types
-#define SR_LIGHT_NONE 0
-#define SR_LIGHT_DIRECTIONAL 1
-#define SR_LIGHT_POINT 2
-#define SR_LIGHT_SPOT 3
+enum
+{
+  SR_LIGHT_NONE = 0,
+  SR_LIGHT_DIRECTIONAL,
+  SR_LIGHT_POINT,
+  SR_LIGHT_SPOT
+};
 
 /// Enables a directional light
 ///
