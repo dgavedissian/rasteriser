@@ -6,7 +6,7 @@
 #include "srCommon.h"
 
 // Output context
-#include "srContext.h" // Internal only
+#include "srContext.h"
 #include "srFrameBuffer.h"
 
 // Rasteriser component

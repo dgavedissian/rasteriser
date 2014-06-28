@@ -101,7 +101,7 @@ void srBegin(unsigned int primitiveType)
   _im.primitive = primitiveType;
 }
 
-void _makeRoomForVertex()
+void makeRoomForVertex()
 {
   // Expand size of vertices array if we need more by
   // creating a larger vertex array then copy old data in
@@ -117,7 +117,7 @@ void _makeRoomForVertex()
 
 void srAddVertex(float x, float y, float z, srColour colour)
 {
-  _makeRoomForVertex();
+  makeRoomForVertex();
 
   // Set vertex data
   srVertex* v = &_im.vertices[_im.size];
@@ -129,7 +129,7 @@ void srAddVertex(float x, float y, float z, srColour colour)
 /*
 void srAddVertex(float x, float y, float z, float nx, float ny, float nz, srColour colour)
 {
-  _makeRoomForVertex();
+  makeRoomForVertex();
 
   // Set vertex data
   srVertex* v = &_im.vertices[_im.size];
@@ -299,9 +299,12 @@ void srDrawLine(srVertex* a, srVertex* b)
     for (float x = xmin; x <= xmax; x += 1.0f)
     {
       float y = y1 + ((x - x1) * slope);
-      srColour colour;
-      srColourMix(&colour, c1, c2, (x - x1) / dx);
-      srDrawPixel(x, y, srColourToHex(&colour));
+      if (x > 0 && x < _srGetWidth() && y > 0 && y < _srGetHeight())
+      {
+        srColour colour;
+        srColourMix(&colour, c1, c2, (x - x1) / dx);
+        srDrawPixel((uint)x, (uint)y, srColourToHex(&colour));
+      }
     }
   }
   else
@@ -323,9 +326,12 @@ void srDrawLine(srVertex* a, srVertex* b)
     for (float y = ymin; y <= ymax; y += 1.0f)
     {
       float x = x1 + ((y - y1) * slope);
-      srColour colour;
-      srColourMix(&colour, c1, c2, (y - y1) / dy);
-      srDrawPixel(x, y, srColourToHex(&colour));
+      if (x > 0 && x < _srGetWidth() && y > 0 && y < _srGetHeight())
+      {
+        srColour colour;
+        srColourMix(&colour, c1, c2, (y - y1) / dy);
+        srDrawPixel((uint)x, (uint)y, srColourToHex(&colour));
+      }
     }
   }
 }
@@ -387,9 +393,12 @@ void drawSpan(srSpan* span, int y)
   // Draw each pixel in the span
   for (int x = span->x1; x < span->x2; ++x)
   {
-    srColour colour;
-    srColourMix(&colour, span->c1, span->c2, factor);
-    srDrawPixel(x, y, srColourToHex(&colour));
+    if (x > 0 && x < _srGetWidth() && y > 0 && y < _srGetHeight())
+    {
+      srColour colour;
+      srColourMix(&colour, span->c1, span->c2, factor);
+      srDrawPixel((uint)x, (uint)y, srColourToHex(&colour));
+    }
     factor += factorStep;
   }
 }

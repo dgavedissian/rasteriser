@@ -48,9 +48,7 @@ void srClear(uint32_t colour)
 
 void srDrawPixel(uint x, uint y, uint32_t colour)
 {
-  if (x >= _fb.width || y >= _fb.height)
-    return;
-
+  assert(x < _fb.width && y < _fb.height);
   _fb.pixels[y * _fb.width + x] = colour;
 }
 

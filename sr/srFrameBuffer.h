@@ -23,6 +23,7 @@ void srSetMaxFPS(uint fps);
 void srClear(uint32_t colour);
 
 /// Sets a pixel in the frame buffer to a certain colour.
+/// Pre: x < _srGetWidth() && y < _srGetHeight()
 ///
 /// @param x The horizontal position of the pixel
 /// @param y The vertical position of the pixel
