@@ -5,7 +5,7 @@
 
 typedef struct
 {
-	float r, g, b, a;
+  float r, g, b, a;
 } srColour;
 
 /// Construct a colour object from red, green, blue and alpha components

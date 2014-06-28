@@ -10,14 +10,14 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
 # Set default build type
 if(CMAKE_BUILD_TYPE STREQUAL "")
-    # CMake defaults to leaving CMAKE_BUILD_TYPE empty so default to
-    # building debug symbols
-    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: None (CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." FORCE)
+  # CMake defaults to leaving CMAKE_BUILD_TYPE empty so default to
+  # building debug symbols
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: None (CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
 # Build in gnu99 mode and link to math library
 if(CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 endif()
 
 # Set install location
@@ -28,26 +28,34 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX})
 foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_INSTALL_PREFIX})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_INSTALL_PREFIX})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_INSTALL_PREFIX})
+  string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_INSTALL_PREFIX})
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_INSTALL_PREFIX})
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_INSTALL_PREFIX})
 endforeach()
 
 # kazmath
-file(GLOB KM_SOURCES "kazmath/*.c")
-set(SOURCES ${SOURCES} ${KM_SOURCES})
+file(GLOB KAZMATH_SRC "kazmath/*.c")
+set(SRC ${SRC} ${KAZMATH_SRC})
 
 # sr
-file(GLOB SR_SOURCES "sr/*.c")
-set(SOURCES ${SOURCES} ${SR_SOURCES})
+set(SR_SRC
+  sr/srColour.c
+  sr/srFrameBuffer.c
+  sr/srRasteriser.c)
+set(SRC ${SRC} ${SR_SRC})
 
 # main
-file(GLOB MAIN_SOURCES "*.c")
-set(SOURCES ${SOURCES} ${MAIN_SOURCES})
+set(MAIN_SRC main.c)
+set(SRC ${SRC} ${MAIN_SRC})
 
-# Executable
-add_executable(sr ${SOURCES})
+# Find SDL
+find_package(SDL REQUIRED)
+
+# Executables
+add_executable(srSDL ${SRC} sr/srContextSDL.c)
+add_executable(srTerm ${SRC} sr/srContextTerminal.c)
 if(CMAKE_COMPILER_IS_GNUCC)
-    target_link_libraries(sr m)
+  target_link_libraries(srSDL m)
+  target_link_libraries(srTerm m)
 endif()

@@ -14,6 +14,6 @@ void _srCreateContext(unsigned int width, unsigned int height);
 void _srDestroyContext();
 
 /// Internal: Write the contexts of the output frame buffer to the context
-void _srWriteFBToContext();
+void _srCopyFramebuffer();
 
 #endif
