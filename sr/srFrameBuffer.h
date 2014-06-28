@@ -12,6 +12,11 @@ void srCreateFrameBuffer(uint width, uint height);
 /// Destroys the output frame buffer and frees memory used by the pixels
 void srDestroyFrameBuffer();
 
+/// Set the target frame rate
+///
+/// @param fps Target FPS count
+void srSetMaxFPS(uint fps);
+
 /// Sets the value of each pixel in the frame buffer to the specified colour.
 ///
 /// @param colour The colour to clear the frame buffer to

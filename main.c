@@ -86,6 +86,7 @@ int main(int argc, char** argv)
 
   // Initialise scene
   srCreateFrameBuffer(width, height);
+  srSetMaxFPS(120);
   srSetRenderState(SR_WIREFRAME, SR_TRUE);
   initScene(60.0f, (float)width / (float)height, 0.1f, 100.0f);
 
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
     srPresent();
 
     // Update rotation
-    r += M_PI / 2.0f * 0.025f;
+    r += M_PI / 2.0f * 0.01f;
   }
 
   // Clean-up
