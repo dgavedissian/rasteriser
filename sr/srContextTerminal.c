@@ -11,28 +11,15 @@ struct
 } _term;
 
 // Convert a colour into a character
-#define LEVEL(N, C) if (level == N) return C
-char intensityToChar(int intensity)
+char intensityToChar(uint intensity)
 {
-  // Map brightness levels to characters
-  int level = (int)((intensity / 255.0f) * 16.0f);
-  LEVEL(1, '.');
-  LEVEL(2, ',');
-  LEVEL(3, ':');
-  LEVEL(4, '~');
-  LEVEL(5, '=');
-  LEVEL(6, '+');
-  LEVEL(7, '?');
-  LEVEL(8, 'I');
-  LEVEL(9, '7');
-  LEVEL(10, 'Z');
-  LEVEL(11, 'O');
-  LEVEL(12, '8');
-  LEVEL(13, 'N');
-  LEVEL(14, 'M');
-  LEVEL(15, '#');
-  LEVEL(16, '@');
-  return ' ';
+  assert(intensity > 255);
+
+  // Determine brightness level
+  char levels[] = {
+    ' ','.',',',':','~','=','+','?','I','7','Z','O','8','N','M','#','@'
+  };
+  return levels[(uint)(intensity / 255.0f * 16.0f)];
 }
 
 int srContextActive()
@@ -64,13 +51,14 @@ void _srCopyFramebuffer()
     {
       // Figure out which character to use from the colour
       uint32_t colour = _srGetPixels()[y * _srGetWidth() + x];
-      char c = intensityToChar((SR_HEX_GETR(colour) + SR_HEX_GETG(colour) + SR_HEX_GETB(colour)) / 3);
+      char repr = intensityToChar(
+        (SR_HEX_GETR(colour) + SR_HEX_GETG(colour) + SR_HEX_GETB(colour)) / 3);
 
       // Calculate colour
       // TODO
 
       // Print twice to achieve a more square pixel aspect ratio
-      putchar(c); putchar(c);
+      putchar(repr); putchar(repr);
     }
     putchar('\n');
     _term.lineCount++;
