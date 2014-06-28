@@ -10,10 +10,10 @@
 struct
 {
   uint32_t* pixels;
-  unsigned int width, height;
+  uint width, height;
 } _fb;
 
-void srCreateFrameBuffer(unsigned int width, unsigned int height)
+void srCreateFrameBuffer(uint width, uint height)
 {
   _fb.pixels = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
   _fb.width = width;
@@ -37,7 +37,7 @@ void srClear(uint32_t colour)
   memset(_fb.pixels, colour, sizeof(uint32_t) * _fb.width * _fb.height);
 }
 
-void srDrawPixel(unsigned int x, unsigned int y, uint32_t colour)
+void srDrawPixel(uint x, uint y, uint32_t colour)
 {
   if (x >= _fb.width || y >= _fb.height)
     return;
@@ -56,12 +56,12 @@ uint32_t* _srGetPixels()
   return _fb.pixels;
 }
 
-unsigned int _srGetWidth()
+uint _srGetWidth()
 {
   return _fb.width;
 }
 
-unsigned int _srGetHeight()
+uint _srGetHeight()
 {
   return _fb.height;
 }

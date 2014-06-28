@@ -35,7 +35,7 @@ enum
 ///
 /// @param state The render state to change
 /// @param value What value the render state should be set to
-void srSetRenderState(unsigned int state, unsigned int value);
+void srSetRenderState(uint state, uint value);
 
 /// Updates the model-view matrix to be used for future render operations
 ///
@@ -107,7 +107,7 @@ enum
 ///
 /// @param primitiveType The type of primitive to draw, for example:
 /// SR_TRIANGLE_STRIP
-void srBegin(unsigned int primitiveType);
+void srBegin(uint primitiveType);
 
 /// Add an unlighted vertex to the current primitive.
 ///
@@ -148,12 +148,12 @@ enum
 ///
 /// @param id The id of the light to enable
 /// @param direction The direction of this light
-void srEnableDirectionalLight(unsigned int id, kmVec3* direction);
+void srEnableDirectionalLight(uint id, kmVec3* direction);
 
 /// Disable a light
 ///
 /// @param id The id of the light to disable
-void srDisableLight(unsigned int id);
+void srDisableLight(uint id);
 
 // =====================================
 // Drawing

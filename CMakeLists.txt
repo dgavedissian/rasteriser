@@ -52,10 +52,16 @@ set(SRC ${SRC} ${MAIN_SRC})
 # Find SDL
 find_package(SDL REQUIRED)
 
-# Executables
+# SDL based example
+include_directories(srSDL ${SDL_INCLUDE_DIRS})
 add_executable(srSDL ${SRC} sr/srContextSDL.c)
-add_executable(srTerm ${SRC} sr/srContextTerminal.c)
+target_link_libraries(srSDL ${SDL_LIBRARY})
 if(CMAKE_COMPILER_IS_GNUCC)
   target_link_libraries(srSDL m)
+endif()
+
+# Terminal based example
+add_executable(srTerm ${SRC} sr/srContextTerminal.c)
+if(CMAKE_COMPILER_IS_GNUCC)
   target_link_libraries(srTerm m)
 endif()

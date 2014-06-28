@@ -3,11 +3,14 @@
 #ifndef _SRCONTEXT_H_
 #define _SRCONTEXT_H_
 
+/// Returns non-zero if the context is still active
+int srContextActive();
+
 /// Internal: Sets up the current context so that it is ready for rendering
 ///
 /// @param width The width of this context
 /// @param height The height of this context
-void _srCreateContext(unsigned int width, unsigned int height);
+void _srCreateContext(uint width, uint height);
 
 /// Internal: Frees memory allocated by the current context and cleans up
 /// anything created by the context.

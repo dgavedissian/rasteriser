@@ -7,7 +7,7 @@
 // Terminal data
 struct
 {
-  unsigned int width, height, lineCount;
+  uint width, height, lineCount;
 } _term;
 
 // Convert a colour into a character
@@ -35,7 +35,12 @@ char intensityToChar(int intensity)
   return ' ';
 }
 
-void _srCreateContext(unsigned int width, unsigned int height)
+int srContextActive()
+{
+  return 1;
+}
+
+void _srCreateContext(uint width, uint height)
 {
   _term.width = width;
   _term.height = height;
