@@ -50,14 +50,16 @@ set(MAIN_SRC main.c)
 set(SRC ${SRC} ${MAIN_SRC})
 
 # Find SDL
-find_package(SDL REQUIRED)
+find_package(SDL)
 
 # SDL based example
-include_directories(srSDL ${SDL_INCLUDE_DIRS})
-add_executable(srSDL ${SRC} sr/srContextSDL.c)
-target_link_libraries(srSDL ${SDL_LIBRARY})
-if(CMAKE_COMPILER_IS_GNUCC)
-  target_link_libraries(srSDL m)
+if(SDL_FOUND)
+  include_directories(srSDL ${SDL_INCLUDE_DIR})
+  add_executable(srSDL ${SRC} sr/srContextSDL.c)
+  target_link_libraries(srSDL ${SDL_LIBRARY})
+  if(CMAKE_COMPILER_IS_GNUCC)
+    target_link_libraries(srSDL m)
+  endif()
 endif()
 
 # Terminal based example

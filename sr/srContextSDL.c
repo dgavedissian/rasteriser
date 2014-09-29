@@ -4,7 +4,7 @@
 #include "srFrameBuffer.h"
 #include "srContext.h"
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 // SDL data
 struct
