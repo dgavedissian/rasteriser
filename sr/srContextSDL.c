@@ -75,7 +75,7 @@ void _srCreateContext(uint width, uint height)
   _sdl.active = 1;
 
   // Set the window caption
-  SDL_WM_SetCaption("SR - SDL Context", NULL);
+  SDL_WM_SetCaption("Rasteriser - SDL Context", NULL);
 }
 
 void _srDestroyContext()
