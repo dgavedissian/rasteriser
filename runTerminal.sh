@@ -1,4 +1,5 @@
 #!/bin/sh
 # This will tell the example to scale to match the terminal size
-(mkdir build; cd build; cmake ..; make)
-./bin/srTerm 640 480
+if (cd build && cmake .. && make); then
+  ./bin/srTerm
+fi

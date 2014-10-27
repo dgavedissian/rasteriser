@@ -2,8 +2,8 @@
 // Copyright (c) David Avedissian 2014
 #include "sr/sr.h"
 
-#define WINDOW_WIDTH 40
-#define WINDOW_HEIGHT 24
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
 
 kmMat4 view;
 
@@ -68,7 +68,7 @@ void drawScene(float r)
   int noVertices = 12 * 3;
   srBegin(SR_TRIANGLE_LIST);
   for (int i = 0; i < noVertices; ++i)
-    srAddVertex(vData[i * 3], vData[i * 3 + 1], vData[i * 3 + 2], srRGB(1.0f, 1.0f, 1.0f));
+    srAddVertex(vData[i * 3], vData[i * 3 + 1], vData[i * 3 + 2], srRGB(1.0f, 0.5f, 1.0f));
   srEnd();
 }
 
