@@ -65,17 +65,17 @@ int srContextActive()
   return _sdl.active;
 }
 
-void _srCreateContext(uint width, uint height)
+void _srRequestContext(uint* width, uint* height)
 {
   // Create the window
   SDL_Init(SDL_INIT_EVERYTHING);
-  _sdl.width = width;
-  _sdl.height = height;
-  _sdl.surface = SDL_SetVideoMode(width, height, 32, SDL_SWSURFACE);
+  _sdl.width = *width;
+  _sdl.height = *height;
+  _sdl.surface = SDL_SetVideoMode(_sdl.width, _sdl.height, 32, SDL_SWSURFACE);
   _sdl.active = 1;
 
   // Set the window caption
-  SDL_WM_SetCaption("Rasteriser - SDL Context", NULL);
+  SDL_WM_SetCaption("Rasteriser", NULL);
 }
 
 void _srDestroyContext()

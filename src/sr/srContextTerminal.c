@@ -10,28 +10,14 @@
 // Terminal data
 struct
 {
-  uint width, height, lineCount;
+  uint width, height;
 } _term;
-
-// Helper functions
-static int getTerminalWidth()
-{
-  struct winsize w;
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-  return w.ws_col;
-}
-
-static int getTerminalHeight()
-{
-  struct winsize w;
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-  return w.ws_row;
-}
 
 // Convert a colour into a character
 static char intensityToChar(uint intensity)
 {
-  assert(intensity > 255);
+  //assert(intensity < 255);
+
   // Determine brightness level
   char levels[] = {
     ' ','.',',',':','~','=','+','?','I','7','Z','O','8','N','M','#','@'
@@ -44,11 +30,22 @@ int srContextActive()
   return 1;
 }
 
-void _srCreateContext(uint width, uint height)
+void _srRequestContext(uint* width, uint* height)
 {
-  _term.width = width;
-  _term.height = height;
-  _term.lineCount = 0;
+  // Get terminal dimensions
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+  // Division by 2 due to each pixel being 2 characters wide
+  int tw = w.ws_col / 2, th = w.ws_row - 1;
+
+  // Clamp width and height
+  *width = *width > tw ? tw : *width;
+  *height = *height > th ? th : *height;
+
+  // Save width and height
+  _term.width = *width;
+  _term.height = *height;
 }
 
 void _srDestroyContext()
@@ -58,8 +55,7 @@ void _srDestroyContext()
 void _srCopyFramebuffer()
 {
   // Move cursor to the correct position
-  printf("\033[%dA", _term.lineCount);
-  _term.lineCount = 0;
+  printf("\033[%dA", _term.height);
 
   // Print everything
   for (int y = 0; y < _term.height; ++y)
@@ -78,6 +74,5 @@ void _srCopyFramebuffer()
       putchar(repr); putchar(repr);
     }
     putchar('\n');
-    _term.lineCount++;
   }
 }

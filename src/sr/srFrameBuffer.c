@@ -18,22 +18,25 @@ struct
 
 void srCreateFrameBuffer(uint width, uint height)
 {
+  // Request a context
+  _srRequestContext(&width, &height);
+
+  // Allocate a framebuffer
   _fb.pixels = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
   _fb.width = width;
   _fb.height = height;
   _fb.frametime = 0;
   srClear(0);
 
-  _srCreateContext(width, height);
+  // Set up the rasteriser
   _srCreateRasteriser();
 }
 
 void srDestroyFrameBuffer()
 {
   _srDestroyRasteriser();
-  _srDestroyContext();
-
   free(_fb.pixels);
+  _srDestroyContext();
 }
 
 void srSetMaxFPS(uint fps)

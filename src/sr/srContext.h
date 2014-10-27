@@ -8,9 +8,9 @@ int srContextActive();
 
 /// Internal: Sets up the current context so that it is ready for rendering
 ///
-/// @param width The width of this context
-/// @param height The height of this context
-void _srCreateContext(uint width, uint height);
+/// @param width The width of this context, which may not be what was requested
+/// @param height The height of this context, which may not be what was requested
+void _srRequestContext(uint* width, uint* height);
 
 /// Internal: Frees memory allocated by the current context and cleans up
 /// anything created by the context.
