@@ -4,17 +4,34 @@
 #include "srFrameBuffer.h"
 #include "srContext.h"
 
+#include <sys/ioctl.h>
+#include <unistd.h>
+
 // Terminal data
 struct
 {
   uint width, height, lineCount;
 } _term;
 
+// Helper functions
+static int getTerminalWidth()
+{
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  return w.ws_col;
+}
+
+static int getTerminalHeight()
+{
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  return w.ws_row;
+}
+
 // Convert a colour into a character
-char intensityToChar(uint intensity)
+static char intensityToChar(uint intensity)
 {
   assert(intensity > 255);
-
   // Determine brightness level
   char levels[] = {
     ' ','.',',',':','~','=','+','?','I','7','Z','O','8','N','M','#','@'

@@ -1,19 +1,11 @@
-# This file is part of the software-rasteriser project
+# This file is part of the rasteriser project
 # Licensing information can be found in the LICENSE file
 # (C) 2014 David Avedissian. All rights reserved.
-
 cmake_minimum_required(VERSION 2.8)
-project(sr)
+project(rasteriser)
 
 # Include modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
-
-# Set default build type
-if(CMAKE_BUILD_TYPE STREQUAL "")
-  # CMake defaults to leaving CMAKE_BUILD_TYPE empty so default to
-  # building debug symbols
-  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: None (CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif()
 
 # Build in gnu99 mode and link to math library
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -35,35 +27,36 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
 endforeach()
 
 # kazmath
-file(GLOB KAZMATH_SRC "kazmath/*.c")
+file(GLOB KAZMATH_SRC "src/kazmath/*.c")
 set(SRC ${SRC} ${KAZMATH_SRC})
 
 # sr
 set(SR_SRC
-  sr/srColour.c
-  sr/srFrameBuffer.c
-  sr/srRasteriser.c)
+  src/sr/srColour.c
+  src/sr/srFrameBuffer.c
+  src/sr/srRasteriser.c)
 set(SRC ${SRC} ${SR_SRC})
 
 # main
-set(MAIN_SRC main.c)
+set(MAIN_SRC src/main.c)
 set(SRC ${SRC} ${MAIN_SRC})
 
 # Find SDL
 find_package(SDL)
 
-# SDL based example
+# SDL based contex
 if(SDL_FOUND)
   include_directories(srSDL ${SDL_INCLUDE_DIR})
-  add_executable(srSDL ${SRC} sr/srContextSDL.c)
+  add_executable(srSDL ${SRC} src/sr/srContextSDL.c)
   target_link_libraries(srSDL ${SDL_LIBRARY})
   if(CMAKE_COMPILER_IS_GNUCC)
     target_link_libraries(srSDL m)
   endif()
 endif()
 
-# Terminal based example
-add_executable(srTerm ${SRC} sr/srContextTerminal.c)
+# Terminal based context
+add_executable(srTerm ${SRC} src/sr/srContextTerminal.c)
 if(CMAKE_COMPILER_IS_GNUCC)
   target_link_libraries(srTerm m)
 endif()
+
