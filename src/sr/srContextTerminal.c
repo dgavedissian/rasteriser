@@ -42,7 +42,7 @@ static float getColourDistanceSq(uint32_t a, uint32_t b)
   return fltSq(r1 - r2) + fltSq(g1 - g2) + fltSq(b1 - b2);
 }
 
-static void setColour(uint32_t rgb)
+static void generateColourCode(char* buffer, uint32_t rgb)
 {
   // ANSI RGB colours
   uint32_t ansirgb[] = {
@@ -70,7 +70,7 @@ static void setColour(uint32_t rgb)
   // Search for the closest colour
   float minDist = 10000000000;
   int minIndex;
-  for (int i = 0; i < 8; ++i)
+  for (int i = 0; i < 16; ++i)
   {
     int dist = getColourDistanceSq(rgb, ansirgb[i]);
     if (dist < minDist)
@@ -80,8 +80,8 @@ static void setColour(uint32_t rgb)
     }
   }
 
-  // Convert this colour into an escape code
-  printf("\033[0;%d;m", 30 + minIndex);
+  // Fill out the buffer
+  snprintf(buffer, 5, "%d;3%d", minIndex / 8, minIndex % 8);
 }
 
 int srContextActive()
@@ -113,10 +113,10 @@ void _srDestroyContext()
 
 void _srCopyFramebuffer()
 {
-  // Move cursor to the correct position
+  // Move cursor to the beginning
   printf("\033[%dA", _term.height);
 
-  // Print everything
+  // Print each pixel
   for (int y = 0; y < _term.height; ++y)
   {
     for (int x = 0; x < _term.width; ++x)
@@ -126,12 +126,11 @@ void _srCopyFramebuffer()
       char repr = intensityToChar(
         (SR_HEX_GETR(colour) + SR_HEX_GETG(colour) + SR_HEX_GETB(colour)) / 3);
 
-      // Calculate colour
-      setColour(colour);
-
-      // Print twice to achieve a more square pixel aspect ratio
-      putchar(repr); putchar(repr);
+      // Draw the pixel
+      char colourCode[5];
+      generateColourCode(colourCode, colour);
+      printf("\033[%s;m%c%c", colourCode, repr, repr);
     }
-    putchar('\n');
+    printf("\n");
   }
 }
