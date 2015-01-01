@@ -6,14 +6,8 @@
 #define DEFAULT_WINDOW_HEIGHT 480
 
 kmMat4 view;
- 
-static float triangle[] = {
-  -1.0f, -1.0f, 0.0f,
-  0.0f, 1.0f, 0.0f,
-  1.0f, -1.0f, 0.0f
-};
 
-static const float cube[] = {
+static float cube[36 * 3] = {
   -1.0f, -1.0f, -1.0f,
   -1.0f, -1.0f, 1.0f,
   -1.0f, 1.0f, 1.0f,
@@ -80,9 +74,9 @@ void fs(float* _in, float* _out)
   VSOut* in = (VSOut*)_in;
   srColour* out = (srColour*)_out;
 
-  out->r = 1.0f;
+  out->r = in->position.x / DEFAULT_WINDOW_WIDTH;
   out->g = 0.0f;
-  out->b = 0.0f;
+  out->b = in->position.y / DEFAULT_WINDOW_HEIGHT;
   out->a = 1.0f;
 }
 
@@ -95,7 +89,7 @@ void initScene()
     {SR_VERT_POSITION, 3}
   };
 
-  srCreateVertexArray(&vao, in, 1, out, 1, triangle, sizeof(triangle) / 3);
+  srCreateVertexArray(&vao, in, 1, out, 1, cube, 36);
 }
 
 void drawScene(float r)

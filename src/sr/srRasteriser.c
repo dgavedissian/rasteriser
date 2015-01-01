@@ -156,7 +156,6 @@ static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
 
   float dx = x2 - x1;
   float dy = y2 - y1;
-  printf("(%f, %f) -> (%f, %f)\n", x1, y1, x2, y2);
 
   // TODO: fp comparison
   if (dx == 0.0f && dy == 0.0f)
