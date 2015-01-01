@@ -14,7 +14,7 @@ typedef struct
 } srVertex;
 
 /// Internal: Set up the rasteriser for rendering
-void _srCreateRasteriser();
+void _srCreateRasteriser(uint width, uint height);
 
 /// Internal: Clean up memory allocated by the rasteriser
 void _srDestroyRasteriser();

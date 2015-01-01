@@ -2,14 +2,25 @@
 // Copyright (c) David Avedissian 2014
 #include "srCommon.h"
 #include "srFrameBuffer.h"
+#include "srRasteriser.h"
 #include "srMain.h"
+
+struct
+{
+  uint width, height;
+} _sr;
 
 void srInit(srInitParams* params)
 {
-  srCreateFrameBuffer(params->width, params->height);
+  _sr.width = params->width;
+  _sr.height = params->height;
+  _srFBCreate(&_sr.width, &_sr.height);
+  _srCreateRasteriser(_sr.width, _sr.height);
 }
 
 void srShutdown()
 {
-  srDestroyFrameBuffer();
+  _srDestroyRasteriser();
+  _srFBDestroy();
 }
+

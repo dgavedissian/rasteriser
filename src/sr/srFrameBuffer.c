@@ -3,40 +3,22 @@
 #include "srCommon.h"
 #include "srContext.h"
 #include "srFrameBuffer.h"
-#include "srRasteriser.h"
 
 #include <unistd.h> // for usleep 
 #include <sys/time.h> // for gettimeofday
 
-// Frame buffer data
 struct
 {
-  uint32_t* pixels;
   uint width, height;
+  uint64_t framestart;
   uint32_t frametime;
 } _fb;
 
-void srCreateFrameBuffer(uint width, uint height)
+uint64_t getMicroseconds()
 {
-  // Request a context
-  _srRequestContext(&width, &height);
-
-  // Allocate a framebuffer
-  _fb.pixels = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
-  _fb.width = width;
-  _fb.height = height;
-  _fb.frametime = 0;
-  srClear(0);
-
-  // Set up the rasteriser
-  _srCreateRasteriser();
-}
-
-void srDestroyFrameBuffer()
-{
-  _srDestroyRasteriser();
-  free(_fb.pixels);
-  _srDestroyContext();
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
 void srSetMaxFPS(uint fps)
@@ -44,46 +26,43 @@ void srSetMaxFPS(uint fps)
   _fb.frametime = 1000000 / fps;
 }
 
-void srClear(uint32_t colour)
+int srContextActive()
 {
-  memset(_fb.pixels, colour, sizeof(uint32_t) * _fb.width * _fb.height);
+  return _srCtxActive();
 }
 
-void srDrawPixel(uint x, uint y, uint32_t colour)
+void srBeginFrame(uint32_t colour)
 {
-  assert(x < _fb.width && y < _fb.height);
-  _fb.pixels[y * _fb.width + x] = colour;
+  _fb.framestart = getMicroseconds();
+  _srCtxBegin();
+  _srCtxClear(colour);
 }
 
-uint64_t getMicroseconds()
+void srPutPixel(uint x, uint y, uint32_t colour)
 {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (tv.tv_sec) * 1000000 + (tv.tv_usec);
+  _srCtxPutPixel(x, y, colour);
 }
 
-void srPresent()
+void srEndFrame()
 {
-  uint64_t frameStart = getMicroseconds();
-  _srCopyFramebuffer();
-  uint64_t diff = getMicroseconds() - frameStart;
+  _srCtxEnd();
+
+  // Calculate frametime
+  uint64_t diff = getMicroseconds() - _fb.framestart;
   if (diff < _fb.frametime)
-  {
     usleep(_fb.frametime - diff);
-  }
 }
 
-uint32_t* _srGetPixels()
+void _srFBCreate(uint* width, uint* height)
 {
-  return _fb.pixels;
+  _srCtxRequest(width, height);
+  _fb.width = *width;
+  _fb.height = *height;
+  _fb.framestart = 0;
+  _fb.frametime = 0;
 }
 
-uint _srGetWidth()
+void _srFBDestroy()
 {
-  return _fb.width;
-}
-
-uint _srGetHeight()
-{
-  return _fb.height;
+  _srCtxDestroy();
 }

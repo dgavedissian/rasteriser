@@ -114,9 +114,9 @@ int main(int argc, char** argv)
       );
 
     // Draw scene
-    srClear(0);
+    srBeginFrame(0);
     drawScene(angle);
-    srPresent();
+    srEndFrame();
 
     // Update rotation
     angle += M_PI / 2.0f * 0.01f;

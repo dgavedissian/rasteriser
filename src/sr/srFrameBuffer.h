@@ -3,49 +3,37 @@
 #ifndef SRFRAMEBUFFER_H
 #define SRFRAMEBUFFER_H
 
-/// Creates the output frame buffer.
-///
-/// @param width The width of the frame buffer in pixels
-/// @param height The height of the frame buffer in pixels
-void srCreateFrameBuffer(uint width, uint height);
-
-/// Destroys the output frame buffer and frees memory used by the pixels
-void srDestroyFrameBuffer();
-
 /// Set the target frame rate
 ///
-/// @param fps Target FPS count
+/// @param fps Target framerate in FPS
 void srSetMaxFPS(uint fps);
 
-/// Sets the value of each pixel in the frame buffer to the specified colour.
+/// Returns a non-zero value if the context is active
+int srContextActive();
+
+/// Begins a new frame and clears the backbuffer to the specified colour
 ///
-/// @param colour The colour to clear the frame buffer to
-void srClear(uint32_t colour);
+/// @param colour The colour to clear the frame buffer with
+void srBeginFrame(uint32_t clearColour);
 
 /// Sets a pixel in the frame buffer to a certain colour.
-/// Pre: x < _srGetWidth() && y < _srGetHeight()
+/// Pre: x < width && y < height
 ///
 /// @param x The horizontal position of the pixel
 /// @param y The vertical position of the pixel
 /// @param colour The colour to set the pixel to
-void srDrawPixel(uint x, uint y, uint32_t colour);
+void srPutPixel(uint x, uint y, uint32_t colour);
 
-/// Copies the contents of the output frame buffer to the current context.
-void srPresent();
+/// Ends the frame and presents the backbuffer to the output context
+void srEndFrame();
 
-/// Internal: Access the internal array of pixels
+/// Internal: Creates the output frame buffer.
 ///
-/// @return Pointer to the first pixel
-uint32_t* _srGetPixels();
+/// @param width The width of the frame buffer in pixels
+/// @param height The height of the frame buffer in pixels
+void _srFBCreate(uint* width, uint* height);
 
-/// Internal: Get frame buffer width
-///
-/// @return The current width of the frame buffer
-uint _srGetWidth();
-
-/// Internal: Get the frame buffer height
-///
-/// @return The current height of the frame buffer
-uint _srGetHeight();
+/// Internal: Destroys the output frame buffer and frees memory used by the pixels
+void _srFBDestroy();
 
 #endif /* SRFRAMEBUFFER_H */

@@ -10,6 +10,8 @@
 // Rasteriser data
 struct
 {
+  uint width, height;
+
   // Render states
   unsigned int states[SR_RENDER_STATE_COUNT];
 
@@ -39,8 +41,11 @@ struct
   unsigned int primitive;
 } _im;
 
-void _srCreateRasteriser()
+void _srCreateRasteriser(uint width, uint height)
 {
+  _r.width = width;
+  _r.height = height;
+
   // Default render states
   _r.states[SR_WIREFRAME] = SR_FALSE;
   _r.states[SR_LIGHTING] = SR_FALSE;
@@ -178,8 +183,8 @@ void srEnd()
     kmVec3TransformCoord(&v[i].p, &v[i].p, &t);
 
     // Normalised device coordinates -> Viewport coordinates
-    v[i].p.x = (v[i].p.x + 1.0f) * 0.5f * _srGetWidth();
-    v[i].p.y = (-v[i].p.y + 1.0f) * 0.5f * _srGetHeight();
+    v[i].p.x = (v[i].p.x + 1.0f) * 0.5f * _r.width;
+    v[i].p.y = (-v[i].p.y + 1.0f) * 0.5f * _r.height;
   }
 
   // =====================================
@@ -190,7 +195,7 @@ void srEnd()
   if (_im.primitive == SR_POINT_LIST)
   {
     for (int i = 0; i < _im.size; ++i)
-      srDrawPixel(v[i].p.x, v[i].p.y, srColourToHex(&v[i].c));
+      srPutPixel(v[i].p.x, v[i].p.y, srColourToHex(&v[i].c));
   }
 
   // Line List
@@ -276,7 +281,7 @@ void srDrawLine(srVertex* a, srVertex* b)
   // TODO: fp comparison, global calamity ensues
   if (dx == 0.0f && dy == 0.0f)
   {
-    srDrawPixel(x1, y1, srColourToHex(&a->c));
+    srPutPixel(x1, y1, srColourToHex(&a->c));
     return;
   }
 
@@ -299,11 +304,11 @@ void srDrawLine(srVertex* a, srVertex* b)
     for (float x = xmin; x <= xmax; x += 1.0f)
     {
       float y = y1 + ((x - x1) * slope);
-      if (x > 0 && x < _srGetWidth() && y > 0 && y < _srGetHeight())
+      if (x > 0 && x < _r.width && y > 0 && y < _r.height)
       {
         srColour colour;
         srColourMix(&colour, c1, c2, (x - x1) / dx);
-        srDrawPixel((uint)x, (uint)y, srColourToHex(&colour));
+        srPutPixel((uint)x, (uint)y, srColourToHex(&colour));
       }
     }
   }
@@ -326,11 +331,11 @@ void srDrawLine(srVertex* a, srVertex* b)
     for (float y = ymin; y <= ymax; y += 1.0f)
     {
       float x = x1 + ((y - y1) * slope);
-      if (x > 0 && x < _srGetWidth() && y > 0 && y < _srGetHeight())
+      if (x > 0 && x < _r.width && y > 0 && y < _r.height)
       {
         srColour colour;
         srColourMix(&colour, c1, c2, (y - y1) / dy);
-        srDrawPixel((uint)x, (uint)y, srColourToHex(&colour));
+        srPutPixel((uint)x, (uint)y, srColourToHex(&colour));
       }
     }
   }
@@ -393,11 +398,11 @@ void drawSpan(srSpan* span, int y)
   // Draw each pixel in the span
   for (int x = span->x1; x < span->x2; ++x)
   {
-    if (x > 0 && x < _srGetWidth() && y > 0 && y < _srGetHeight())
+    if (x > 0 && x < _r.width && y > 0 && y < _r.height)
     {
       srColour colour;
       srColourMix(&colour, span->c1, span->c2, factor);
-      srDrawPixel((uint)x, (uint)y, srColourToHex(&colour));
+      srPutPixel((uint)x, (uint)y, srColourToHex(&colour));
     }
     factor += factorStep;
   }

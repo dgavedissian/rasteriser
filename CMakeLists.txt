@@ -7,11 +7,6 @@ project(rasteriser)
 # Include modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
-# Build in gnu99 mode
-if(CMAKE_COMPILER_IS_GNUCC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-endif()
-
 # kazmath
 file(GLOB KAZMATH_SRC "src/sr/kazmath/*.c")
 
@@ -25,14 +20,18 @@ set(SR_SRC
 
 # Dependencies
 find_package(SDL REQUIRED)
+set(LIBS ${SDL_LIBRARY})
+
+# Ensure we build in gnu99 mode and include the math library
+if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+  set(LIBS ${LIBS} m)
+endif()
 
 # sr library
 include_directories(${SDL_INCLUDE_DIR})
 add_library(sr ${SR_SRC} ${KAZMATH_SRC})
-target_link_libraries(sr ${SDL_LIBRARY})
-if(CMAKE_COMPILER_IS_GNUCC)
-  target_link_libraries(sr m)
-endif()
+target_link_libraries(sr ${LIBS})
 
 # Example
 add_executable(example src/main.c)
