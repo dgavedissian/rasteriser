@@ -20,8 +20,9 @@ set(SRC ${SRC} ${KAZMATH_SRC})
 set(SR_SRC
   src/sr/srColour.c
   src/sr/srFrameBuffer.c
-  src/sr/srRasteriser.c
-  src/sr/srContextSDL.c)
+  src/sr/srContextSDL.c
+  src/sr/srMain.c
+  src/sr/srRasteriser.c)
 set(SRC ${SRC} ${SR_SRC})
 
 # Dependencies

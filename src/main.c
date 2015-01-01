@@ -2,16 +2,52 @@
 // Copyright (c) David Avedissian 2014
 #include "sr/sr.h"
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#define DEFAULT_WINDOW_WIDTH 640
+#define DEFAULT_WINDOW_HEIGHT 480
 
 kmMat4 view;
+  
+static const float cubeVertices[] = {
+  -1.0f, -1.0f, -1.0f,
+  -1.0f, -1.0f, 1.0f,
+  -1.0f, 1.0f, 1.0f,
+  1.0f, 1.0f, -1.0f,
+  -1.0f, -1.0f, -1.0f,
+  -1.0f, 1.0f, -1.0f,
+  1.0f, -1.0f, 1.0f,
+  -1.0f, -1.0f, -1.0f,
+  1.0f, -1.0f, -1.0f,
+  1.0f, 1.0f, -1.0f,
+  1.0f, -1.0f, -1.0f,
+  -1.0f, -1.0f, -1.0f,
+  -1.0f, -1.0f, -1.0f,
+  -1.0f, 1.0f, 1.0f,
+  -1.0f, 1.0f, -1.0f,
+  1.0f, -1.0f, 1.0f,
+  -1.0f, -1.0f, 1.0f,
+  -1.0f, -1.0f, -1.0f,
+  -1.0f, 1.0f, 1.0f,
+  -1.0f, -1.0f, 1.0f,
+  1.0f, -1.0f, 1.0f,
+  1.0f, 1.0f, 1.0f,
+  1.0f, -1.0f, -1.0f,
+  1.0f, 1.0f, -1.0f,
+  1.0f, -1.0f, -1.0f,
+  1.0f, 1.0f, 1.0f,
+  1.0f, -1.0f, 1.0f,
+  1.0f, 1.0f, 1.0f,
+  1.0f, 1.0f, -1.0f,
+  -1.0f, 1.0f, -1.0f,
+  1.0f, 1.0f, 1.0f,
+  -1.0f, 1.0f, -1.0f,
+  -1.0f, 1.0f, 1.0f,
+  1.0f, 1.0f, 1.0f,
+  -1.0f, 1.0f, 1.0f,
+  1.0f, -1.0f, 1.0f
+};
 
-void initScene(float fov, float aspect, float zNear, float zFar)
+void initScene()
 {
-  // Calculate projection matrix
-  kmMat4 proj;
-  srSetProjectionMatrix(kmMat4PerspectiveProjection(&proj, fov, aspect, zNear, zFar));
 }
 
 void drawScene(float r)
@@ -24,59 +60,21 @@ void drawScene(float r)
   kmMat4 mv;
   srSetModelViewMatrix(kmMat4Multiply(&mv, &view, &m));
 
-  // Vertices
-  static const float vData[] = {
-    -1.0f, -1.0f, -1.0f, // triangle 1 : begin
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f, -1.0f, // triangle 2 : begin
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, -1.0f, // triangle 2 : end
-    1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, -1.0f,
-    -1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f
-  };
-
   // Draw
   int noVertices = 12 * 3;
   srBegin(SR_TRIANGLE_LIST);
   for (int i = 0; i < noVertices; ++i)
-    srAddVertex(vData[i * 3], vData[i * 3 + 1], vData[i * 3 + 2], srRGB(0.0f, 0.0f, 1.0f));
+    srAddVertex(
+        cubeVertices[i * 3], cubeVertices[i * 3 + 1], cubeVertices[i * 3 + 2],
+        srRGB(0.0f, 0.0f, 1.0f));
   srEnd();
 }
 
 int main(int argc, char** argv)
 {
   // Get width and height
-  int width = WINDOW_WIDTH;
-  int height = WINDOW_HEIGHT;
+  int width = DEFAULT_WINDOW_WIDTH;
+  int height = DEFAULT_WINDOW_HEIGHT;
   if (argc > 1)
   {
     width = atoi(argv[1]);
@@ -84,20 +82,31 @@ int main(int argc, char** argv)
       height = atoi(argv[2]);
   }
 
-  // Initialise scene
-  srCreateFrameBuffer(width, height);
-  srSetMaxFPS(120);
+  // Set up the rasteriser
+  srInitParams params;
+  params.width = width;
+  params.height = height;
+  srInit(&params);
+  srSetMaxFPS(60);
   srSetRenderState(SR_WIREFRAME, SR_TRUE);
-  initScene(60.0f, (float)width / (float)height, 0.1f, 100.0f);
+  
+  // Set projectino matrix
+  kmMat4 proj;
+  float aspect = (float)width / height;
+  srSetProjectionMatrix(
+      kmMat4PerspectiveProjection(&proj, 60.0f, aspect, 0.1f, 100.0f));
+
+  // Initialise the scene
+  initScene();
 
   // Enter rendering loop
-  float r = 0.0f;
+  kmVec3 eye;
+  kmVec3 centre;
+  kmVec3 up;
+  float angle = 0.0f;
   while (srContextActive())
   {
     // Calculate view matrix
-    kmVec3 eye;
-    kmVec3 centre;
-    kmVec3 up;
     kmMat4LookAt(&view,
       kmVec3Fill(&eye, 0.0f, 0.0f, 3.0f),
       kmVec3Fill(&centre, 0.0f, 0.0f, 0.0f),
@@ -106,14 +115,14 @@ int main(int argc, char** argv)
 
     // Draw scene
     srClear(0);
-    drawScene(r);
+    drawScene(angle);
     srPresent();
 
     // Update rotation
-    r += M_PI / 2.0f * 0.01f;
+    angle += M_PI / 2.0f * 0.01f;
   }
 
   // Clean-up
-  srDestroyFrameBuffer();
+  srShutdown();
   return 0;
 }

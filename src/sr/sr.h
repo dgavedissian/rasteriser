@@ -5,13 +5,12 @@
 
 #include "srCommon.h"
 
-// Output context
 #include "srContext.h"
 #include "srFrameBuffer.h"
-
-// Rasteriser component
 #include "srRasteriser.h"
 
 // ...other components here
+
+#include "srMain.h"
 
 #endif

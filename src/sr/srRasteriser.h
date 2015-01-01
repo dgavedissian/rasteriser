@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#ifndef _SRRASTERISER_H_
-#define _SRRASTERISER_H_
+#ifndef SRRASTERISER_H
+#define SRRASTERISER_H
 
 // Struct used for storing vertex data
 // TODO: this should be user defined and specified to the sr library using some
@@ -176,4 +176,4 @@ void srDrawLine(srVertex* a, srVertex* b);
 /// @see srDrawPixel
 void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c);
 
-#endif
+#endif /* SRRASTERISER_H */

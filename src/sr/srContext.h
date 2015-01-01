@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#ifndef _SRCONTEXT_H_
-#define _SRCONTEXT_H_
+#ifndef SRCONTEXT_H
+#define SRCONTEXT_H
 
 /// Returns non-zero if the context is still active
 int srContextActive();
@@ -19,4 +19,4 @@ void _srDestroyContext();
 /// Internal: Write the contexts of the output frame buffer to the context
 void _srCopyFramebuffer();
 
-#endif
+#endif /* SRCONTEXT_H */

@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#ifndef _SRCOMMON_H_
-#define _SRCOMMON_H_
+#ifndef SRCOMMON_H
+#define SRCOMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,4 +38,4 @@ typedef unsigned int uint;
 #define SR_TRUE 1
 #define SR_FALSE 0
 
-#endif
+#endif /* SRCOMMON_H */

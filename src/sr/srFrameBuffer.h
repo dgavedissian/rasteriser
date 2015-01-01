@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#ifndef _SRFRAMEBUFFER_H_
-#define _SRFRAMEBUFFER_H_
+#ifndef SRFRAMEBUFFER_H
+#define SRFRAMEBUFFER_H
 
 /// Creates the output frame buffer.
 ///
@@ -48,4 +48,4 @@ uint _srGetWidth();
 /// @return The current height of the frame buffer
 uint _srGetHeight();
 
-#endif
+#endif /* SRFRAMEBUFFER_H */

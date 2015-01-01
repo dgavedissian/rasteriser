@@ -1,7 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
-#ifndef _SRCOLOUR_H_
-#define _SRCOLOUR_H_
+#ifndef SRCOLOUR_H
+#define SRCOLOUR_H
 
 typedef struct
 {
@@ -46,4 +46,4 @@ uint32_t srColourToHex(srColour* colour);
 /// @return Simply returns the output colour pointer
 srColour* srColourMix(srColour* out, srColour* a, srColour* b, float x);
 
-#endif
+#endif /* SRCOLOUR_H */
