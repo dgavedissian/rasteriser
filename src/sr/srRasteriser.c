@@ -7,29 +7,13 @@
 #define INITIAL_MAX_VERTEX_COUNT 10
 #define MAX_LIGHT_COUNT 8
 
-// Rasteriser data
 struct
 {
-  uint width, height;
-
-  // Render states
-  unsigned int states[SR_RENDER_STATE_COUNT];
-
-  // Matrices
+  srSize width, height;
+  srEnum states[SR_RENDER_STATE_COUNT];
   kmMat4 modelView, proj;
-
-  // Vertex Layout
-  srVertexDecl* vertexLayout;
-
-  // Lighting data
-  // If type == SR_LIGHT_DIRECTIONAL then position is treated as a direction
-  struct
-  {
-    int type;
-    kmVec3 position;
-
-    // 
-  } lights[MAX_LIGHT_COUNT];
+  srVertexShaderFunc vs;
+  srFragmentShaderFunc fs;
 } _r;
 
 // Immediate mode data
@@ -49,10 +33,6 @@ void _srCreateRasteriser(uint width, uint height)
   // Default render states
   _r.states[SR_WIREFRAME] = SR_FALSE;
   _r.states[SR_LIGHTING] = SR_FALSE;
-
-  // Disable lights
-  for (int i = 0; i < MAX_LIGHT_COUNT; ++i)
-    _r.lights[i].type = SR_LIGHT_NONE;
 
   // Default matrices
   kmMat4Identity(&_r.modelView);
@@ -96,195 +76,97 @@ kmMat4* srGetProjectionMatrix()
   return &_r.proj;
 }
 
-void srSetVertexLayout(srVertexDecl vertexDecl[])
+void srCreateVertexArray(
+    srVertexArray* out,
+    srVertexAttribute inLayout[],
+    srSize inLayoutCount,
+    srVertexAttribute outLayout[],
+    srSize outLayoutCount,
+    float* vertexData,
+    srSize vertexCount)
 {
-  _r.vertexLayout = vertexDecl;
+  out->inLayoutCount = inLayoutCount;
+  out->inVertexSize = 0;
+  out->outLayoutCount = outLayoutCount;
+  out->outVertexSize = 0;
+  out->vertexCount = vertexCount;
+  
+  // Input layout
+  srSize inLayoutSize = inLayoutCount * sizeof(srVertexAttribute);
+  out->inLayout = (srVertexAttribute*)malloc(inLayoutSize);
+  memcpy(out->inLayout, inLayout, inLayoutSize);
+  for (int i = 0; i < inLayoutCount; ++i)
+    out->inVertexSize += inLayout[i].size;
+
+  // Output layout
+  srSize outLayoutSize = outLayoutCount * sizeof(srVertexAttribute);
+  out->outLayout = (srVertexAttribute*)malloc(outLayoutSize);
+  memcpy(out->outLayout, outLayout, outLayoutSize);
+  for (int i = 0; i < outLayoutCount; ++i)
+    out->outVertexSize += outLayout[i].size;
+  
+  // Allocate data
+  srSize dataSize = sizeof(float) * out->inVertexSize * vertexCount;
+  out->vertexData = (float*)malloc(dataSize);
+  memcpy(out->vertexData, vertexData, dataSize);
 }
 
-void srBegin(unsigned int primitiveType)
+void srSetShader(srVertexShaderFunc vs, srFragmentShaderFunc fs)
 {
-  _im.primitive = primitiveType;
+  _r.vs = vs;
+  _r.fs = fs;
 }
 
-void makeRoomForVertex()
+static void putPixel(srSize posOffset, float* vertex)
 {
-  // Expand size of vertices array if we need more by
-  // creating a larger vertex array then copy old data in
-  if (_im.size == _im.maxSize)
-  {
-    _im.maxSize *= 2;
-    srVertex* newVertices = (srVertex*)malloc(sizeof(srVertex) * _im.maxSize);
-    memcpy(newVertices, _im.vertices, sizeof(srVertex) * _im.size);
-    free(_im.vertices);
-    _im.vertices = newVertices;
-  }
+  // Run the fragment shader 
+  float colour[4];
+  _r.fs(vertex, colour);
+
+  // Convert colour to hex
+  int r = (int)(colour[0] * 255.0f);
+  int g = (int)(colour[1] * 255.0f);
+  int b = (int)(colour[2] * 255.0f);
+  int a = (int)(colour[3] * 255.0f);
+  srPutPixel((uint)vertex[posOffset], (uint)vertex[posOffset + 1],
+      SR_HEX_RGBA(r, g, b, a));
 }
 
-void srAddVertex(float x, float y, float z, srColour colour)
+static void interpolateVertexData(
+    float* out,
+    srSize posOffset,
+    srSize vertexSize,
+    float* a,
+    float* b,
+    float t)
 {
-  makeRoomForVertex();
-
-  // Set vertex data
-  srVertex* v = &_im.vertices[_im.size];
-  kmVec3Fill(&v->p, x, y, z);
-  v->c = colour;
-  _im.size++;
-}
-
-/*
-void srAddVertex(float x, float y, float z, float nx, float ny, float nz, srColour colour)
-{
-  makeRoomForVertex();
-
-  // Set vertex data
-  srVertex* v = &_im.vertices[_im.size];
-  kmVec3Fill(&v->p, x, y, z);
-  kmVec3Fill(&v->n, nx, ny, nz);
-  v->c = colour;
-  _im.size++;
-}
-*/
-
-// TODO: Transforming should be mapping the input vertex structure to the
-// output vertex structure where the output components (x, y, z, lighting,
-// texCoord/colour) are then interpolated when rasterised, like a vertex shader
-//
-// For example, a programmable pipeline looks like:
-//
-// Vertices -> VERTEX PROGRAM -> Dev to VP -> Rasterise -> FRAGMENT PROGRAM
-//
-// sr should eventually support a programmable pipeline but for the time being
-// the VP and FP segments of the pipeline can be hard coded in this function
-// and srDrawLine/srDrawTriangle.
-//
-// An example of in/out declarations for vertex lighting:
-// Input Declaration: (position, normal, texCoord)
-// Output Declaration: (position, lighting, texCoord)
-void srEnd()
-{
-  if (_im.size == 0)
-    return;
-
-  srVertex* v = _im.vertices;
-
-  // Build final transform matrix
-  kmMat4 t;
-  kmMat4Multiply(&t, &_r.proj, &_r.modelView);
-
-  // =====================================
-  // Stage 1: Transform vertices
-  // =====================================
-
-  // kmVec3TransformCoord both transforms the vertex and divides
-  // each component by w
-  for (int i = 0; i < _im.size; ++i)
+  for (int i = 0; i < vertexSize; ++i)
   {
-    // World space -> Normalised device coordinates
-    kmVec3TransformCoord(&v[i].p, &v[i].p, &t);
-
-    // Normalised device coordinates -> Viewport coordinates
-    v[i].p.x = (v[i].p.x + 1.0f) * 0.5f * _r.width;
-    v[i].p.y = (-v[i].p.y + 1.0f) * 0.5f * _r.height;
-  }
-
-  // =====================================
-  // Stage 2: Rasterise
-  // =====================================
-
-  // Point List
-  if (_im.primitive == SR_POINT_LIST)
-  {
-    for (int i = 0; i < _im.size; ++i)
-      srPutPixel(v[i].p.x, v[i].p.y, srColourToHex(&v[i].c));
-  }
-
-  // Line List
-  if (_im.primitive == SR_LINE_LIST && (_im.size & 2) == 0)
-  {
-    // Cycle through lines
-    for (int l = 0; l < _im.size / 2; ++l)
-      srDrawLine(&v[l * 2], &v[l * 2 + 1]);
-  }
-
-  // Line Strip
-  if (_im.primitive == SR_LINE_STRIP && _im.size > 1)
-  {
-    // Take first vertex
-    srVertex* vp = &v[0];
-
-    // Cycle through remaining vertices
-    for (int i = 1; i < _im.size; ++i)
-    {
-      srVertex* vc = &v[i];
-      srDrawLine(vp, vc);
-      vp = vc;
-    }
-  }
-
-  // Triangle List
-  if (_im.primitive == SR_TRIANGLE_LIST && (_im.size % 3) == 0)
-  {
-    // Cycle through triangles
-    for (int t = 0; t < _im.size / 3; ++t)
-      srDrawTriangle(&v[t * 3], &v[t * 3 + 1], &v[t * 3 + 2]);
-  }
-
-  // Triangle Strip
-  if (_im.primitive == SR_TRIANGLE_STRIP && _im.size > 2)
-  {
-    // Take first two vertices
-    srVertex* v0 = &v[0];
-    srVertex* v1 = &v[1];
-
-    // Cycle through remaining vertices
-    for (int i = 2; i < _im.size; ++i)
-    {
-      srVertex* vc = &v[i];
-      srDrawTriangle(v0, v1, vc);
-      v0 = v1;
-      v1 = vc;
-    }
-  }
-
-  // Reset
-  _im.size = 0;
-}
-
-void srEnableDirectionalLight(unsigned int id, kmVec3* direction)
-{
-  if (id < MAX_LIGHT_COUNT)
-  {
-    _r.lights[id].type = SR_LIGHT_DIRECTIONAL;
-    kmVec3Assign(&_r.lights[id].position, direction);
-  }
-}
-
-void srDisableLight(unsigned int id)
-{
-  if (id < MAX_LIGHT_COUNT)
-  {
-    _r.lights[id].type = SR_LIGHT_NONE;
+    if (i == posOffset || i == posOffset + 1)
+      continue;
+    out[i] = SR_LERP(a[i], b[i], t);
   }
 }
 
 // Pre: Vertices are assumed to be homogeneous coordinates
-void srDrawLine(srVertex* a, srVertex* b)
+static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
 {
-  float x1 = a->p.x, y1 = a->p.y;
-  float x2 = b->p.x, y2 = b->p.y;
-  srColour* c1 = &a->c;
-  srColour* c2 = &b->c;
+  float x1 = a[posOffset], y1 = a[posOffset + 1];
+  float x2 = b[posOffset], y2 = b[posOffset + 1];
 
   float dx = x2 - x1;
   float dy = y2 - y1;
+  printf("(%f, %f) -> (%f, %f)\n", x1, y1, x2, y2);
 
-  // TODO: fp comparison, global calamity ensues
+  // TODO: fp comparison
   if (dx == 0.0f && dy == 0.0f)
   {
-    srPutPixel(x1, y1, srColourToHex(&a->c));
+    putPixel(posOffset, a);
     return;
   }
 
+  // Temporary vertex used as the output of interpolation
+  float* interpVertex = (float*)malloc(sizeof(float) * vertexSize);
   if (fabs(dx) > fabs(dy))
   {
     float xmin, xmax;
@@ -306,9 +188,11 @@ void srDrawLine(srVertex* a, srVertex* b)
       float y = y1 + ((x - x1) * slope);
       if (x > 0 && x < _r.width && y > 0 && y < _r.height)
       {
-        srColour colour;
-        srColourMix(&colour, c1, c2, (x - x1) / dx);
-        srPutPixel((uint)x, (uint)y, srColourToHex(&colour));
+        float t = (x - x1) / dx; // TODO: is this correct?
+        interpVertex[posOffset] = x;
+        interpVertex[posOffset + 1] = y;
+        interpolateVertexData(interpVertex, posOffset, vertexSize, a, b, t); 
+        putPixel(posOffset, interpVertex);
       }
     }
   }
@@ -333,14 +217,16 @@ void srDrawLine(srVertex* a, srVertex* b)
       float x = x1 + ((y - y1) * slope);
       if (x > 0 && x < _r.width && y > 0 && y < _r.height)
       {
-        srColour colour;
-        srColourMix(&colour, c1, c2, (y - y1) / dy);
-        srPutPixel((uint)x, (uint)y, srColourToHex(&colour));
+        float t = (y - y1) / dy; // TODO: is this correct?
+        interpVertex[posOffset] = x;
+        interpVertex[posOffset + 1] = y;
+        interpolateVertexData(interpVertex, posOffset, vertexSize, a, b, t); 
+        putPixel(posOffset, interpVertex);
       }
     }
   }
 }
-
+/*
 typedef struct
 {
   srVertex* v1;
@@ -492,3 +378,116 @@ void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
     drawSpansBetweenEdges(&edges[longEdge], &edges[shortEdge2]);
   }
 }
+*/
+
+void srDrawVertexArray(srEnum type, srVertexArray* vao)
+{
+  // ==========================================================================
+  // Stage 1: Vertex Shader
+  // ==========================================================================
+
+  // Figure out where the vertices are in the input and output layouts
+  srSize inPositionOffset = 0;
+  srSize outPositionOffset = 0;
+  for (int j = 0; j < vao->inLayoutCount; ++j)
+  {
+    if (vao->inLayout[j].type == SR_VERT_POSITION)
+      break;
+    inPositionOffset += vao->inLayout[j].type;
+  }
+  for (int j = 0; j < vao->outLayoutCount; ++j)
+  {
+    if (vao->outLayout[j].type == SR_VERT_POSITION)
+      break;
+    outPositionOffset += vao->outLayout[j].type;
+  }
+
+  // Create space for output data
+  float* out = (float*)malloc(sizeof(float) * vao->outVertexSize * vao->vertexCount); 
+
+  // Run the vertex shader on the data
+  for (int i = 0; i < vao->vertexCount; ++i)
+  {
+    int inOffset = i * vao->inVertexSize;
+    int outOffset = i * vao->outVertexSize;
+    _r.vs(vao->vertexData + inOffset, out + outOffset);
+    
+    // Transform normalised device coordinates to viewport coordinates
+    kmVec3* v = (kmVec3*)(out + outOffset + outPositionOffset);
+    v->x = (v->x + 1.0f) * 0.5f * _r.width;
+    v->y = (v->y + 1.0f) * 0.5f * _r.height;
+  }
+
+  // =====================================
+  // Stage 2: Rasterise
+  // =====================================
+  
+  // Triangle list for the time being
+  for (int v = 0; v < vao->vertexCount; v += 3)
+  {
+    float* v0 = out + ((v) * vao->outVertexSize);
+    float* v1 = out + ((v + 1) * vao->outVertexSize);
+    float* v2 = out + ((v + 2) * vao->outVertexSize);
+    drawLine(outPositionOffset, vao->outVertexSize, v0, v1);
+    drawLine(outPositionOffset, vao->outVertexSize, v1, v2);
+    drawLine(outPositionOffset, vao->outVertexSize, v0, v2);
+  }
+
+  /*
+  // Point List
+  if (_im.primitive == SR_POINT_LIST)
+  {
+    for (int i = 0; i < _im.size; ++i)
+      srPutPixel(v[i].p.x, v[i].p.y, srColourToHex(&v[i].c));
+  }
+
+  // Line List
+  if (_im.primitive == SR_LINE_LIST && (_im.size & 2) == 0)
+  {
+    // Cycle through lines
+    for (int l = 0; l < _im.size / 2; ++l)
+      srDrawLine(&v[l * 2], &v[l * 2 + 1]);
+  }
+
+  // Line Strip
+  if (_im.primitive == SR_LINE_STRIP && _im.size > 1)
+  {
+    // Take first vertex
+    srVertex* vp = &v[0];
+
+    // Cycle through remaining vertices
+    for (int i = 1; i < _im.size; ++i)
+    {
+      srVertex* vc = &v[i];
+      srDrawLine(vp, vc);
+      vp = vc;
+    }
+  }
+
+  // Triangle List
+  if (_im.primitive == SR_TRIANGLE_LIST && (_im.size % 3) == 0)
+  {
+    // Cycle through triangles
+    for (int t = 0; t < _im.size / 3; ++t)
+      srDrawTriangle(&v[t * 3], &v[t * 3 + 1], &v[t * 3 + 2]);
+  }
+
+  // Triangle Strip
+  if (_im.primitive == SR_TRIANGLE_STRIP && _im.size > 2)
+  {
+    // Take first two vertices
+    srVertex* v0 = &v[0];
+    srVertex* v1 = &v[1];
+
+    // Cycle through remaining vertices
+    for (int i = 2; i < _im.size; ++i)
+    {
+      srVertex* vc = &v[i];
+      srDrawTriangle(v0, v1, vc);
+      v0 = v1;
+      v1 = vc;
+    }
+  }
+  */
+}
+

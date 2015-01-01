@@ -6,8 +6,14 @@
 #define DEFAULT_WINDOW_HEIGHT 480
 
 kmMat4 view;
-  
-static const float cubeVertices[] = {
+ 
+static float triangle[] = {
+  -1.0f, -1.0f, 0.0f,
+  0.0f, 1.0f, 0.0f,
+  1.0f, -1.0f, 0.0f
+};
+
+static const float cube[] = {
   -1.0f, -1.0f, -1.0f,
   -1.0f, -1.0f, 1.0f,
   -1.0f, 1.0f, 1.0f,
@@ -46,8 +52,50 @@ static const float cubeVertices[] = {
   1.0f, -1.0f, 1.0f
 };
 
+srVertexArray vao;
+
+// Shader parameters
+kmMat4 mvp;
+
+// Shader
+typedef struct
+{
+  kmVec3 position;
+} VSIn;
+
+typedef struct
+{
+  kmVec3 position;
+} VSOut;
+
+void vs(float* _in, float* _out)
+{
+  VSIn* in = (VSIn*)_in;
+  VSOut* out = (VSOut*)_out;
+  kmVec3TransformCoord(&out->position, &in->position, &mvp);
+}
+
+void fs(float* _in, float* _out)
+{
+  VSOut* in = (VSOut*)_in;
+  srColour* out = (srColour*)_out;
+
+  out->r = 1.0f;
+  out->g = 0.0f;
+  out->b = 0.0f;
+  out->a = 1.0f;
+}
+
 void initScene()
 {
+  srVertexAttribute in[] = {
+    {SR_VERT_POSITION, 3}
+  };
+  srVertexAttribute out[] = {
+    {SR_VERT_POSITION, 3}
+  };
+
+  srCreateVertexArray(&vao, in, 1, out, 1, triangle, sizeof(triangle) / 3);
 }
 
 void drawScene(float r)
@@ -60,14 +108,12 @@ void drawScene(float r)
   kmMat4 mv;
   srSetModelViewMatrix(kmMat4Multiply(&mv, &view, &m));
 
+  // Calculate model-view-projection matrix
+  kmMat4Multiply(&mvp, srGetProjectionMatrix(), &mv);
+
   // Draw
-  int noVertices = 12 * 3;
-  srBegin(SR_TRIANGLE_LIST);
-  for (int i = 0; i < noVertices; ++i)
-    srAddVertex(
-        cubeVertices[i * 3], cubeVertices[i * 3 + 1], cubeVertices[i * 3 + 2],
-        srRGB(0.0f, 0.0f, 1.0f));
-  srEnd();
+  srSetShader(&vs, &fs);
+  srDrawVertexArray(SR_TRIANGLE_LIST, &vao);
 }
 
 int main(int argc, char** argv)

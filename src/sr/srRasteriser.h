@@ -62,27 +62,79 @@ void srSetProjectionMatrix(kmMat4* matrix);
 /// @see srGetModelViewMatrix
 kmMat4* srGetProjectionMatrix();
 
-// =====================================
-// Vertex Structure
-// =====================================
+///////////////////////////////////////////////////////////////////////////////
+// Vertex Layout
+///////////////////////////////////////////////////////////////////////////////
 
 // Vertex primitive types
 enum
 {
-  SR_VERT_POSITION  = 0x0001,
-  SR_VERT_NORMAL    = 0x0002,
-  SR_VERT_COLOUR    = 0x0004,
-  SR_VERT_UV        = 0x0008
+  SR_VERT_POSITION,
+  SR_VERT_NORMAL,
+  SR_VERT_COLOUR,
+  SR_VERT_UV
 };
 
-// Vertex declaration struct
+// Vertex layout
 typedef struct
 {
-    uint32_t type, offset;
-} srVertexDecl;
+  srEnum type;
+  srSize size;
+} srVertexAttribute;
 
-/// Sets the current vertex layout
-void srSetVertexLayout(srVertexDecl vertexDecl[]);
+// Vertex array
+typedef struct
+{
+  srVertexAttribute* inLayout;
+  srVertexAttribute* outLayout;
+  srSize inLayoutCount;
+  srSize outLayoutCount;
+
+  float* vertexData;
+  srSize inVertexSize;
+  srSize outVertexSize;
+  srSize vertexCount;
+} srVertexArray;
+
+/// Create vertex array
+///
+/// @param out Vertex array object to initialise
+/// @param inLayout Array of vertex attribute objects to specify the data layout
+/// @param attribCount Number of vertex attribute objects
+/// @param vertexData Vertex data
+/// @param vertexCount Number of vertices
+void srCreateVertexArray(
+    srVertexArray* out,
+    srVertexAttribute inLayout[],
+    srSize inLayoutCount,
+    srVertexAttribute outLayout[],
+    srSize outLayoutCount,
+    float* vertexData,
+    srSize vertexCount);
+
+/// Vertex Shader Function
+/// The parameters are the input and output data respectively. The layout of
+/// the data matches the vertex attribute layouts given in srCreateVertexArray
+typedef void (*srVertexShaderFunc)(float*, float*);
+
+/// Fragment Shader Function
+/// The parameters are the vertex shader output and output colour respectively.
+/// The layout of the vertex shader output matches the output vertex attribute
+/// layout given in srCreateVertexArray. The output colour is an array of 4
+/// floats representing RGBA.
+typedef void (*srFragmentShaderFunc)(float*, float*);
+
+/// Set shader
+///
+/// @param vs Vertex shader function
+/// @param fs Fragment shader function
+void srSetShader(srVertexShaderFunc vs, srFragmentShaderFunc fs);
+
+/// Draw vertex array
+///
+/// @param type The type of primitive to draw
+/// @param vao The vertex array object to draw
+void srDrawVertexArray(srEnum type, srVertexArray* vao);
 
 // =====================================
 // Primitives

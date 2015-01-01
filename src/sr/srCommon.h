@@ -12,8 +12,9 @@
 
 #include "kazmath/kazmath.h"
 
-// Common types
 typedef unsigned int uint;
+typedef unsigned int srEnum;
+typedef unsigned int srSize;
 
 // Core headers
 #include "srColour.h"
