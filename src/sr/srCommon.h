@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <math.h>
 
-#include "../kazmath/kazmath.h"
+#include "kazmath/kazmath.h"
 
 // Common types
 typedef unsigned int uint;
