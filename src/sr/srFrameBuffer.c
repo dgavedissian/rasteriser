@@ -31,7 +31,7 @@ int srContextActive()
   return _srCtxActive();
 }
 
-void srBeginFrame(uint32_t colour)
+void srBegin(uint32_t colour)
 {
   _fb.framestart = getMicroseconds();
   _srCtxBegin();
@@ -43,7 +43,7 @@ void srPutPixel(uint x, uint y, uint32_t colour)
   _srCtxPutPixel(x, y, colour);
 }
 
-void srEndFrame()
+void srEnd()
 {
   _srCtxEnd();
 

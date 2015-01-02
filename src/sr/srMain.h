@@ -17,4 +17,14 @@ void srInit(srInitParams* params);
 /// Shut down the rasteriser lib
 void srShutdown();
 
+/// Gets the backbuffer width
+///
+/// @returns The backbuffer width
+srSize srGetWidth();
+
+/// Gets the backbuffer height
+///
+/// @returns The backbuffer height
+srSize srGetHeight();
+
 #endif /* SRMAIN_H */

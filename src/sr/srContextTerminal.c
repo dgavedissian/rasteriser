@@ -11,6 +11,7 @@
 struct
 {
   uint width, height;
+  uint32_t* pixels;
 } _term;
 
 // Convert a colour into a character
@@ -84,12 +85,7 @@ static void generateColourCode(char* buffer, uint32_t rgb)
   snprintf(buffer, 5, "%d;3%d", minIndex / 8, minIndex % 8);
 }
 
-int srContextActive()
-{
-  return 1;
-}
-
-void _srRequestContext(uint* width, uint* height)
+void _srCtxRequest(uint* width, uint* height)
 {
   // Get terminal dimensions
   struct winsize w;
@@ -105,13 +101,39 @@ void _srRequestContext(uint* width, uint* height)
   // Save width and height
   _term.width = *width;
   _term.height = *height;
+
+  // Allocate backbuffer
+  srSize backbufferSize = sizeof(uint32_t) * _term.width * _term.height;
+  _term.pixels = (uint32_t*)malloc(backbufferSize);
+  memset(_term.pixels, 0, backbufferSize); 
 }
 
-void _srDestroyContext()
+void _srCtxDestroy()
+{
+  free(_term.pixels);
+}
+
+int _srCtxActive()
+{
+  return 1;
+}
+
+void _srCtxClear(uint32_t colour)
+{
+  memset(_term.pixels, colour, sizeof(uint32_t) * _term.width * _term.height);
+}
+
+void _srCtxBegin()
 {
 }
 
-void _srCopyFramebuffer()
+void _srCtxPutPixel(uint x, uint y, uint32_t colour)
+{
+  assert(x < _term.width && y < _term.height);
+  _term.pixels[y * _term.width + x] = colour;
+}
+
+void _srCtxEnd()
 {
   // Move cursor to the beginning
   printf("\033[%dA", _term.height);
@@ -122,14 +144,14 @@ void _srCopyFramebuffer()
     for (int x = 0; x < _term.width; ++x)
     {
       // Figure out which character to use from the colour
-      uint32_t colour = _srGetPixels()[y * _srGetWidth() + x];
+      uint32_t colour = _term.pixels[y * _term.width + x];
       char repr = intensityToChar(
         (SR_HEX_GETR(colour) + SR_HEX_GETG(colour) + SR_HEX_GETB(colour)) / 3);
 
       // Draw the pixel
       char colourCode[5];
       generateColourCode(colourCode, colour);
-      printf("\033[%s;m%c%c", colourCode, repr, repr);
+      printf("\033[%sm%c%c", colourCode, repr, repr);
     }
     printf("\n");
   }

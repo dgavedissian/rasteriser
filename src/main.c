@@ -2,11 +2,12 @@
 // Copyright (c) David Avedissian 2014
 #include "sr/sr.h"
 
-#define DEFAULT_WINDOW_WIDTH 640
-#define DEFAULT_WINDOW_HEIGHT 480
-
+// Horrible globals
 kmMat4 view;
 kmMat4 proj;
+
+uint width = 800;
+uint height = 600;
 
 static float cube[36 * 3] = {
   -1.0f, -1.0f, -1.0f,
@@ -75,9 +76,9 @@ void fs(float* _in, float* _out)
   VSOut* in = (VSOut*)_in;
   srColour* out = (srColour*)_out;
 
-  out->r = in->position.x / DEFAULT_WINDOW_WIDTH;
+  out->r = in->position.x / width;
   out->g = 0.0f;
-  out->b = in->position.y / DEFAULT_WINDOW_HEIGHT;
+  out->b = in->position.y / height;
   out->a = 1.0f;
 }
 
@@ -108,8 +109,6 @@ void drawScene(float r)
 int main(int argc, char** argv)
 {
   // Get width and height
-  int width = DEFAULT_WINDOW_WIDTH;
-  int height = DEFAULT_WINDOW_HEIGHT;
   if (argc > 1)
   {
     width = atoi(argv[1]);
@@ -122,7 +121,9 @@ int main(int argc, char** argv)
   params.width = width;
   params.height = height;
   srInit(&params);
-  //srSetMaxFPS(60);
+  width = srGetWidth();
+  height = srGetHeight();
+  srSetMaxFPS(60);
   //srSetRenderState(SR_WIREFRAME, SR_TRUE);
   
   // Set projectino matrix
@@ -147,9 +148,9 @@ int main(int argc, char** argv)
       );
 
     // Draw scene
-    srBeginFrame(0);
+    srBegin(0);
     drawScene(angle);
-    srEndFrame();
+    srEnd();
 
     // Update rotation
     angle += M_PI / 2.0f * 0.01f;

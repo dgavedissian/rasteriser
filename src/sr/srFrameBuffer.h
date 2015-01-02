@@ -14,7 +14,7 @@ int srContextActive();
 /// Begins a new frame and clears the backbuffer to the specified colour
 ///
 /// @param colour The colour to clear the frame buffer with
-void srBeginFrame(uint32_t clearColour);
+void srBegin(uint32_t clearColour);
 
 /// Sets a pixel in the frame buffer to a certain colour.
 /// Pre: x < width && y < height
@@ -25,7 +25,7 @@ void srBeginFrame(uint32_t clearColour);
 void srPutPixel(uint x, uint y, uint32_t colour);
 
 /// Ends the frame and presents the backbuffer to the output context
-void srEndFrame();
+void srEnd();
 
 /// Internal: Creates the output frame buffer.
 ///

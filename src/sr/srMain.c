@@ -7,7 +7,7 @@
 
 struct
 {
-  uint width, height;
+  srSize width, height;
 } _sr;
 
 void srInit(srInitParams* params)
@@ -24,3 +24,12 @@ void srShutdown()
   _srFBDestroy();
 }
 
+srSize srGetWidth()
+{
+  return _sr.width;
+}
+
+srSize srGetHeight()
+{
+  return _sr.height;
+}
