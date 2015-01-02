@@ -11,69 +11,25 @@ struct
 {
   srSize width, height;
   srEnum states[SR_RENDER_STATE_COUNT];
-  kmMat4 modelView, proj;
   srVertexShaderFunc vs;
   srFragmentShaderFunc fs;
 } _r;
-
-// Immediate mode data
-// TODO: eventually we can use some VBO here once thats implemented
-struct
-{
-  srVertex* vertices;
-  unsigned int size, maxSize;
-  unsigned int primitive;
-} _im;
 
 void _srCreateRasteriser(uint width, uint height)
 {
   _r.width = width;
   _r.height = height;
-
-  // Default render states
   _r.states[SR_WIREFRAME] = SR_FALSE;
-  _r.states[SR_LIGHTING] = SR_FALSE;
-
-  // Default matrices
-  kmMat4Identity(&_r.modelView);
-  kmMat4Identity(&_r.proj);
-
-  // Initialise immediate mode data
-  _im.maxSize = INITIAL_MAX_VERTEX_COUNT;
-  _im.vertices = (srVertex*)malloc(sizeof(srVertex) * _im.maxSize);
-  _im.size = 0;
 }
 
 void _srDestroyRasteriser()
 {
-  // Free immediate mode data
-  free(_im.vertices);
 }
 
 void srSetRenderState(unsigned int state, unsigned int value)
 {
   assert(state < SR_RENDER_STATE_COUNT);
   _r.states[state] = value;
-}
-
-void srSetModelViewMatrix(kmMat4* matrix)
-{
-  kmMat4Assign(&_r.modelView, matrix);
-}
-
-kmMat4* srGetModelViewMatrix()
-{
-  return &_r.modelView;
-}
-
-void srSetProjectionMatrix(kmMat4* matrix)
-{
-  kmMat4Assign(&_r.proj, matrix);
-}
-
-kmMat4* srGetProjectionMatrix()
-{
-  return &_r.proj;
 }
 
 void srCreateVertexArray(

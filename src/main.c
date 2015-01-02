@@ -6,6 +6,7 @@
 #define DEFAULT_WINDOW_HEIGHT 480
 
 kmMat4 view;
+kmMat4 proj;
 
 static float cube[36 * 3] = {
   -1.0f, -1.0f, -1.0f,
@@ -94,16 +95,10 @@ void initScene()
 
 void drawScene(float r)
 {
-  // Calculate model matrix
-  kmMat4 m;
-  kmMat4RotationY(&m, r);
-
-  // Calculate model-view matrix
-  kmMat4 mv;
-  srSetModelViewMatrix(kmMat4Multiply(&mv, &view, &m));
-
   // Calculate model-view-projection matrix
-  kmMat4Multiply(&mvp, srGetProjectionMatrix(), &mv);
+  kmMat4RotationY(&mvp, r);
+  kmMat4Multiply(&mvp, &view, &mvp);
+  kmMat4Multiply(&mvp, &proj, &mvp);
 
   // Draw
   srSetShader(&vs, &fs);
@@ -127,14 +122,12 @@ int main(int argc, char** argv)
   params.width = width;
   params.height = height;
   srInit(&params);
-  srSetMaxFPS(60);
+  //srSetMaxFPS(60);
   //srSetRenderState(SR_WIREFRAME, SR_TRUE);
   
   // Set projectino matrix
-  kmMat4 proj;
   float aspect = (float)width / height;
-  srSetProjectionMatrix(
-      kmMat4PerspectiveProjection(&proj, 60.0f, aspect, 0.1f, 100.0f));
+  kmMat4PerspectiveProjection(&proj, 60.0f, aspect, 0.1f, 100.0f);
 
   // Initialise the scene
   initScene();
