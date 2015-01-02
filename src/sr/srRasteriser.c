@@ -148,7 +148,6 @@ static void interpolateVertexData(
   }
 }
 
-// Pre: Vertices are assumed to be homogeneous coordinates
 static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
 {
   float x1 = a[posOffset], y1 = a[posOffset + 1];
@@ -160,7 +159,8 @@ static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
   // TODO: fp comparison
   if (dx == 0.0f && dy == 0.0f)
   {
-    putPixel(posOffset, a);
+    if (x1 >= 0.0f && x1 < _r.width && y1 >= 0.0f && y1 < _r.height)
+      putPixel(posOffset, a);
     return;
   }
 
@@ -185,7 +185,7 @@ static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
     for (float x = xmin; x <= xmax; x += 1.0f)
     {
       float y = y1 + ((x - x1) * slope);
-      if (x > 0 && x < _r.width && y > 0 && y < _r.height)
+      if (x >= 0 && x < _r.width && y >= 0 && y < _r.height)
       {
         float t = (x - x1) / dx; // TODO: is this correct?
         interpVertex[posOffset] = x;
@@ -214,7 +214,7 @@ static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
     for (float y = ymin; y <= ymax; y += 1.0f)
     {
       float x = x1 + ((y - y1) * slope);
-      if (x > 0 && x < _r.width && y > 0 && y < _r.height)
+      if (x >= 0 && x < _r.width && y >= 0 && y < _r.height)
       {
         float t = (y - y1) / dy; // TODO: is this correct?
         interpVertex[posOffset] = x;
@@ -225,23 +225,16 @@ static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
     }
   }
 }
-/*
-typedef struct
-{
-  srVertex* v1;
-  srVertex* v2;
-} srEdge;
 
 typedef struct
 {
-  float x1, x2;
-  srColour* c1;
-  srColour* c2;
-} srSpan;
+  float* v1;
+  float* v2;
+} Edge;
 
-void buildEdge(srEdge* e, srVertex* v1, srVertex* v2)
+static void buildEdge(Edge* e, srSize posOffset, float* v1, float* v2)
 {
-  if (v1->p.y < v2->p.y)
+  if (v1[posOffset + 1] < v2[posOffset + 1])
   {
     e->v1 = v1;
     e->v2 = v2;
@@ -253,105 +246,67 @@ void buildEdge(srEdge* e, srVertex* v1, srVertex* v2)
   }
 }
 
-void buildSpan(srSpan* s, float x1, float x2, srColour* c1, srColour* c2)
+static void drawSpansBetweenEdges(srSize posOffset, srSize vertexSize, Edge* e1, Edge* e2)
 {
-  if (x1 < x2)
-  {
-    s->x1 = x1;
-    s->x2 = x2;
-    s->c1 = c1;
-    s->c2 = c2;
-  }
-  else
-  {
-    s->x1 = x2;
-    s->x2 = x1;
-    s->c1 = c2;
-    s->c2 = c1;
-  }
-}
-
-void drawSpan(srSpan* span, int y)
-{
-  int xdiff = span->x2 - span->x1;
-  if (xdiff == 0)
-    return;
-
-  float factor = 0.0f;
-  float factorStep = 1.0f / (float)xdiff;
-
-  // Draw each pixel in the span
-  for (int x = span->x1; x < span->x2; ++x)
-  {
-    if (x > 0 && x < _r.width && y > 0 && y < _r.height)
-    {
-      srColour colour;
-      srColourMix(&colour, span->c1, span->c2, factor);
-      srPutPixel((uint)x, (uint)y, srColourToHex(&colour));
-    }
-    factor += factorStep;
-  }
-}
-
-void drawSpansBetweenEdges(srEdge* e1, srEdge* e2)
-{
-  // Calculate difference between the y coordinates
-  // of the first edge and return if 0
-  float e1ydiff = (float)(e1->v2->p.y - e1->v1->p.y);
+  // Calculate difference between the y coordinates of the first edge and
+  // return if 0
+  float e1ydiff = (float)(e1->v2[posOffset + 1] - e1->v1[posOffset + 1]);
   if (e1ydiff == 0.0f)
     return;
 
-  // Calculate difference between the y coordinates
-  // of the second edge and return if 0
-  float e2ydiff = (float)(e2->v2->p.y - e2->v1->p.y);
-  if(e2ydiff == 0.0f)
+  // Calculate difference between the y coordinates of the second edge and
+  // return if 0
+  float e2ydiff = (float)(e2->v2[posOffset + 1] - e2->v1[posOffset + 1]);
+  if (e2ydiff == 0.0f)
     return;
 
   // Calculate differences between the x coordinates
-  float e1xdiff = (float)(e1->v2->p.x - e1->v1->p.x);
-  float e2xdiff = (float)(e2->v2->p.x - e2->v1->p.x);
+  float e1xdiff = (float)(e1->v2[posOffset] - e1->v1[posOffset]);
+  float e2xdiff = (float)(e2->v2[posOffset] - e2->v1[posOffset]);
 
-  // Calculate factors to use for interpolation
-  // with the edges and the step values to increase
-  // them by after drawing each span
-  float factor1 = (float)(e2->v1->p.y - e1->v1->p.y) / e1ydiff;
+  // Calculate factors to use for interpolation with the edges and the step
+  // values to increase them by after drawing each span
+  float factor1 = (float)(e2->v1[posOffset + 1] - e1->v1[posOffset + 1]) / e1ydiff;
   float factorStep1 = 1.0f / e1ydiff;
   float factor2 = 0.0f;
   float factorStep2 = 1.0f / e2ydiff;
 
   // Loop through the lines between the edges and draw spans
-  for (int y = e2->v1->p.y; y < e2->v2->p.y; ++y)
+  for (int y = e2->v1[posOffset + 1]; y < e2->v2[posOffset + 1]; ++y)
   {
-    // Draw span
-    srSpan span;
-    srColour c1, c2;
-    srColourMix(&c1, &e1->v1->c, &e1->v2->c, factor1);
-    srColourMix(&c2, &e2->v1->c, &e2->v2->c, factor2);
-    buildSpan(&span,
-      e1->v1->p.x + (int)(e1xdiff * factor1),
-      e2->v1->p.x + (int)(e2xdiff * factor2),
-      &c1, &c2);
-    drawSpan(&span, y);
+    // Generate two temp vertices
+    float* interpVert0 = (float*)malloc(sizeof(float) * vertexSize * 2);
+    float* interpVert1 = &interpVert0[vertexSize];
 
+    // Draw span
+    interpVert0[posOffset] = e1->v1[posOffset] + (int)(e1xdiff * factor1);
+    interpVert0[posOffset + 1] = y;
+    interpolateVertexData(interpVert0, posOffset, vertexSize, e1->v1, e1->v2, factor1);
+    interpVert1[posOffset] = e2->v1[posOffset] + (int)(e2xdiff * factor2);
+    interpVert1[posOffset + 1] = y;
+    interpolateVertexData(interpVert1, posOffset, vertexSize, e2->v1, e2->v2, factor2);
+    drawLine(posOffset, vertexSize, interpVert0, interpVert1);
+    
     // Increase factors
     factor1 += factorStep1;
     factor2 += factorStep2;
   }
 }
 
-void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
+static void drawTriangle(
+    srSize posOffset, srSize vertexSize, float *a, float *b, float *c)
 {
-  // Store the edges
-  srEdge edges[3];
-  buildEdge(&edges[0], a, b);
-  buildEdge(&edges[1], b, c);
-  buildEdge(&edges[2], c, a);
+  // Build the edges
+  Edge edges[3];
+  buildEdge(&edges[0], posOffset, a, b);
+  buildEdge(&edges[1], posOffset, b, c);
+  buildEdge(&edges[2], posOffset, c, a);
 
   if (_r.states[SR_WIREFRAME] == SR_TRUE)
   {
-    // Just draw the edges
+    // Draw the edges
     for (int i = 0; i < 3; ++i)
-      srDrawLine(edges[i].v1, edges[i].v2);
+      drawLine(posOffset, vertexSize, edges[i].v1, edges[i].v2);
   }
   else
   {
@@ -361,7 +316,7 @@ void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
     // Find the edge with the greatest length in the y axis
     for (int i = 0; i < 3; ++i)
     {
-      int length = edges[i].v2->p.y - edges[i].v1->p.y;
+      int length = edges[i].v2[posOffset + 1] - edges[i].v1[posOffset + 1];
       if (length > maxLength)
       {
         maxLength = length;
@@ -373,11 +328,10 @@ void srDrawTriangle(srVertex *a, srVertex *b, srVertex *c)
     int shortEdge2 = (longEdge + 2) % 3;
 
     // Draw spans between edges
-    drawSpansBetweenEdges(&edges[longEdge], &edges[shortEdge1]);
-    drawSpansBetweenEdges(&edges[longEdge], &edges[shortEdge2]);
+    drawSpansBetweenEdges(posOffset, vertexSize, &edges[longEdge], &edges[shortEdge1]);
+    drawSpansBetweenEdges(posOffset, vertexSize, &edges[longEdge], &edges[shortEdge2]);
   }
 }
-*/
 
 void srDrawVertexArray(srEnum type, srVertexArray* vao)
 {
@@ -427,9 +381,7 @@ void srDrawVertexArray(srEnum type, srVertexArray* vao)
     float* v0 = out + ((v) * vao->outVertexSize);
     float* v1 = out + ((v + 1) * vao->outVertexSize);
     float* v2 = out + ((v + 2) * vao->outVertexSize);
-    drawLine(outPositionOffset, vao->outVertexSize, v0, v1);
-    drawLine(outPositionOffset, vao->outVertexSize, v1, v2);
-    drawLine(outPositionOffset, vao->outVertexSize, v0, v2);
+    drawTriangle(outPositionOffset, vao->outVertexSize, v0, v1, v2);
   }
 
   /*

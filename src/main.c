@@ -128,7 +128,7 @@ int main(int argc, char** argv)
   params.height = height;
   srInit(&params);
   srSetMaxFPS(60);
-  srSetRenderState(SR_WIREFRAME, SR_TRUE);
+  //srSetRenderState(SR_WIREFRAME, SR_TRUE);
   
   // Set projectino matrix
   kmMat4 proj;
