@@ -13,6 +13,11 @@ struct
   srEnum states[SR_RENDER_STATE_COUNT];
   srVertexShaderFunc vs;
   srFragmentShaderFunc fs;
+
+  // Temporary vertices
+  float* tempLineVertex;
+  float* tempSpanVertex1;
+  float* tempSpanVertex2;
 } _r;
 
 void _srCreateRasteriser(uint width, uint height)
@@ -65,6 +70,13 @@ void srCreateVertexArray(
   srSize dataSize = sizeof(float) * out->inVertexSize * vertexCount;
   out->vertexData = (float*)malloc(dataSize);
   memcpy(out->vertexData, vertexData, dataSize);
+}
+
+void srDestroyVertexArray(srVertexArray* vao)
+{
+  free(vao->inLayout);
+  free(vao->outLayout);
+  free(vao->vertexData);
 }
 
 void srSetShader(srVertexShaderFunc vs, srFragmentShaderFunc fs)
@@ -121,7 +133,7 @@ static void drawLine(srSize posOffset, srSize vertexSize, float* a, float* b)
   }
 
   // Temporary vertex used as the output of interpolation
-  float* interpVertex = (float*)malloc(sizeof(float) * vertexSize);
+  float* interpVertex = _r.tempLineVertex;
   if (fabs(dx) > fabs(dy))
   {
     float xmin, xmax;
@@ -230,18 +242,18 @@ static void drawSpansBetweenEdges(srSize posOffset, srSize vertexSize, Edge* e1,
   // Loop through the lines between the edges and draw spans
   for (int y = e2->v1[posOffset + 1]; y < e2->v2[posOffset + 1]; ++y)
   {
-    // Generate two temp vertices
-    float* interpVert0 = (float*)malloc(sizeof(float) * vertexSize * 2);
-    float* interpVert1 = &interpVert0[vertexSize];
+    // Generate left and right end points of the span
+    _r.tempSpanVertex1[posOffset] = e1->v1[posOffset] + (int)(e1xdiff * factor1);
+    _r.tempSpanVertex1[posOffset + 1] = y;
+    interpolateVertexData(
+        _r.tempSpanVertex1, posOffset, vertexSize, e1->v1, e1->v2, factor1);
+    _r.tempSpanVertex2[posOffset] = e2->v1[posOffset] + (int)(e2xdiff * factor2);
+    _r.tempSpanVertex2[posOffset + 1] = y;
+    interpolateVertexData(
+        _r.tempSpanVertex2, posOffset, vertexSize, e2->v1, e2->v2, factor2);
 
-    // Draw span
-    interpVert0[posOffset] = e1->v1[posOffset] + (int)(e1xdiff * factor1);
-    interpVert0[posOffset + 1] = y;
-    interpolateVertexData(interpVert0, posOffset, vertexSize, e1->v1, e1->v2, factor1);
-    interpVert1[posOffset] = e2->v1[posOffset] + (int)(e2xdiff * factor2);
-    interpVert1[posOffset + 1] = y;
-    interpolateVertexData(interpVert1, posOffset, vertexSize, e2->v1, e2->v2, factor2);
-    drawLine(posOffset, vertexSize, interpVert0, interpVert1);
+    // Draw a line between these two points
+    drawLine(posOffset, vertexSize, _r.tempSpanVertex1, _r.tempSpanVertex2);
     
     // Increase factors
     factor1 += factorStep1;
@@ -331,6 +343,13 @@ void srDrawVertexArray(srEnum type, srVertexArray* vao)
   // Stage 2: Rasterise
   // =====================================
   
+  // Allocate temporary interpolation vertices
+  // Drawing a line requires one temporary vertex, whilst drawing a span
+  // requires an additional two vertices
+  _r.tempLineVertex = (float*)malloc(sizeof(float) * vao->outVertexSize * 3);
+  _r.tempSpanVertex1 = _r.tempLineVertex + vao->outVertexSize;
+  _r.tempSpanVertex2 = _r.tempLineVertex + vao->outVertexSize * 2;
+
   // Triangle list for the time being
   for (int v = 0; v < vao->vertexCount; v += 3)
   {
@@ -339,6 +358,10 @@ void srDrawVertexArray(srEnum type, srVertexArray* vao)
     float* v2 = out + ((v + 2) * vao->outVertexSize);
     drawTriangle(outPositionOffset, vao->outVertexSize, v0, v1, v2);
   }
+
+  // Cleanup
+  free(_r.tempLineVertex);
+  free(out);
 
   /*
   // Point List

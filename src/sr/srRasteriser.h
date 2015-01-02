@@ -78,6 +78,11 @@ void srCreateVertexArray(
     float* vertexData,
     srSize vertexCount);
 
+/// Destroy a vertex array created with srCreateVertexArray
+///
+/// @param vao Vertex array object to destroy
+void srDestroyVertexArray(srVertexArray* vao);
+
 /// Vertex Shader Function
 /// The parameters are the input and output data respectively. The layout of
 /// the data matches the vertex attribute layouts given in srCreateVertexArray

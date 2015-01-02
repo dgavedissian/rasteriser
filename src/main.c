@@ -82,7 +82,7 @@ void fs(float* _in, float* _out)
   out->a = 1.0f;
 }
 
-void initScene()
+void init()
 {
   srVertexAttribute in[] = {
     {SR_VERT_POSITION, 3}
@@ -94,7 +94,12 @@ void initScene()
   srCreateVertexArray(&vao, in, 1, out, 1, cube, 36);
 }
 
-void drawScene(float r)
+void cleanup()
+{
+  srDestroyVertexArray(&vao);
+}
+
+void render(float r)
 {
   // Calculate model-view-projection matrix
   kmMat4RotationY(&mvp, r);
@@ -132,7 +137,7 @@ int main(int argc, char** argv)
   kmMat4PerspectiveProjection(&proj, 60.0f, aspect, 0.1f, 100.0f);
 
   // Initialise the scene
-  initScene();
+  init();
 
   // Enter rendering loop
   kmVec3 eye;
@@ -150,7 +155,7 @@ int main(int argc, char** argv)
 
     // Draw scene
     srBegin(0);
-    drawScene(angle);
+    render(angle);
     srEnd();
 
     // Update rotation
@@ -158,6 +163,7 @@ int main(int argc, char** argv)
   }
 
   // Clean-up
+  cleanup();
   srShutdown();
   return 0;
 }
