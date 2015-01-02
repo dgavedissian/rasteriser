@@ -5,7 +5,6 @@
 
 #include "srCommon.h"
 
-#include "srContext.h"
 #include "srFrameBuffer.h"
 #include "srRasteriser.h"
 

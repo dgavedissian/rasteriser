@@ -3,6 +3,21 @@
 #ifndef SRFRAMEBUFFER_H
 #define SRFRAMEBUFFER_H
 
+enum
+{
+  SR_CTX_SDL,
+  SR_CTX_TERM
+};
+
+/// Internal: Creates the output frame buffer.
+///
+/// @param width The width of the frame buffer in pixels
+/// @param height The height of the frame buffer in pixels
+void _srFBCreate(uint* width, uint* height, srEnum outputContext);
+
+/// Internal: Destroys the output frame buffer and frees memory used by the pixels
+void _srFBDestroy();
+
 /// Set the target frame rate
 ///
 /// @param fps Target framerate in FPS
@@ -26,14 +41,5 @@ void srPutPixel(uint x, uint y, uint32_t colour);
 
 /// Ends the frame and presents the backbuffer to the output context
 void srEnd();
-
-/// Internal: Creates the output frame buffer.
-///
-/// @param width The width of the frame buffer in pixels
-/// @param height The height of the frame buffer in pixels
-void _srFBCreate(uint* width, uint* height);
-
-/// Internal: Destroys the output frame buffer and frees memory used by the pixels
-void _srFBDestroy();
 
 #endif /* SRFRAMEBUFFER_H */

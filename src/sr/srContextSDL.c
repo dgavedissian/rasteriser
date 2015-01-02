@@ -1,8 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
 #include "srCommon.h"
-#include "srFrameBuffer.h"
-#include "srContext.h"
+#include "srContextSDL.h"
 
 #include <SDL.h>
 
@@ -14,7 +13,7 @@ struct
   int active;
 } _sdl;
 
-void _srCtxRequest(uint* width, uint* height)
+void _srSDLCtxRequest(uint* width, uint* height)
 {
   // Create the window
   SDL_Init(SDL_INIT_EVERYTHING);
@@ -27,7 +26,7 @@ void _srCtxRequest(uint* width, uint* height)
   SDL_WM_SetCaption("Rasteriser", NULL);
 }
 
-void _srCtxDestroy()
+void _srSDLCtxDestroy()
 {
   SDL_FreeSurface(_sdl.surface);
   SDL_Quit();
@@ -35,12 +34,12 @@ void _srCtxDestroy()
   _sdl.active = 0;
 }
 
-int _srCtxActive()
+int _srSDLCtxActive()
 {
   return _sdl.active;
 }
 
-void _srCtxClear(uint32_t colour)
+void _srSDLCtxClear(uint32_t colour)
 {
   int pixel = SDL_MapRGBA(_sdl.surface->format,
       SR_HEX_GETR(colour),
@@ -50,7 +49,7 @@ void _srCtxClear(uint32_t colour)
   SDL_FillRect(_sdl.surface, NULL, pixel);
 }
 
-void _srCtxBegin()
+void _srSDLCtxBegin()
 {
   assert(_sdl.surface);
   
@@ -67,7 +66,7 @@ void _srCtxBegin()
     SDL_LockSurface(_sdl.surface);
 }
 
-void _srCtxPutPixel(uint x, uint y, uint32_t colour)
+void _srSDLCtxPutPixel(uint x, uint y, uint32_t colour)
 {
   assert(_sdl.surface);
   assert(x < _sdl.width && y < _sdl.height);
@@ -124,7 +123,7 @@ void _srCtxPutPixel(uint x, uint y, uint32_t colour)
   }
 }
 
-void _srCtxEnd()
+void _srSDLCtxEnd()
 {
   assert(_sdl.surface);
 

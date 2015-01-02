@@ -120,6 +120,7 @@ int main(int argc, char** argv)
   srInitParams params;
   params.width = width;
   params.height = height;
+  params.outputContext = SR_CTX_SDL;
   srInit(&params);
   width = srGetWidth();
   height = srGetHeight();

@@ -13,8 +13,9 @@ file(GLOB KAZMATH_SRC "src/sr/kazmath/*.c")
 # sr
 set(SR_SRC
   src/sr/srColour.c
-  src/sr/srFrameBuffer.c
   src/sr/srContextSDL.c
+  src/sr/srContextTerm.c
+  src/sr/srFrameBuffer.c
   src/sr/srMain.c
   src/sr/srRasteriser.c)
 

@@ -14,7 +14,7 @@ void srInit(srInitParams* params)
 {
   _sr.width = params->width;
   _sr.height = params->height;
-  _srFBCreate(&_sr.width, &_sr.height);
+  _srFBCreate(&_sr.width, &_sr.height, params->outputContext);
   _srCreateRasteriser(_sr.width, _sr.height);
 }
 

@@ -1,8 +1,7 @@
 // Software Rasteriser
 // Copyright (c) David Avedissian 2014
 #include "srCommon.h"
-#include "srFrameBuffer.h"
-#include "srContext.h"
+#include "srContextTerm.h"
 
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -85,7 +84,7 @@ static void generateColourCode(char* buffer, uint32_t rgb)
   snprintf(buffer, 5, "%d;3%d", minIndex / 8, minIndex % 8);
 }
 
-void _srCtxRequest(uint* width, uint* height)
+void _srTermCtxRequest(uint* width, uint* height)
 {
   // Get terminal dimensions
   struct winsize w;
@@ -108,32 +107,32 @@ void _srCtxRequest(uint* width, uint* height)
   memset(_term.pixels, 0, backbufferSize); 
 }
 
-void _srCtxDestroy()
+void _srTermCtxDestroy()
 {
   free(_term.pixels);
 }
 
-int _srCtxActive()
+int _srTermCtxActive()
 {
   return 1;
 }
 
-void _srCtxClear(uint32_t colour)
+void _srTermCtxClear(uint32_t colour)
 {
   memset(_term.pixels, colour, sizeof(uint32_t) * _term.width * _term.height);
 }
 
-void _srCtxBegin()
+void _srTermCtxBegin()
 {
 }
 
-void _srCtxPutPixel(uint x, uint y, uint32_t colour)
+void _srTermCtxPutPixel(uint x, uint y, uint32_t colour)
 {
   assert(x < _term.width && y < _term.height);
   _term.pixels[y * _term.width + x] = colour;
 }
 
-void _srCtxEnd()
+void _srTermCtxEnd()
 {
   // Move cursor to the beginning
   printf("\033[%dA", _term.height);
