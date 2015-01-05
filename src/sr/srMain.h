@@ -5,9 +5,9 @@
 
 typedef struct
 {
-  uint width;
-  uint height;
-  srEnum outputContext;
+    uint width;
+    uint height;
+    srEnum outputContext;
 } srInitParams;
 
 /// Initialise the rasteriser lib

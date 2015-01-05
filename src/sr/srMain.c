@@ -7,29 +7,29 @@
 
 struct
 {
-  srSize width, height;
+    srSize width, height;
 } _sr;
 
 void srInit(srInitParams* params)
 {
-  _sr.width = params->width;
-  _sr.height = params->height;
-  _srFBCreate(&_sr.width, &_sr.height, params->outputContext);
-  _srCreateRasteriser(_sr.width, _sr.height);
+    _sr.width = params->width;
+    _sr.height = params->height;
+    _srFBCreate(&_sr.width, &_sr.height, params->outputContext);
+    _srCreateRasteriser(_sr.width, _sr.height);
 }
 
 void srShutdown()
 {
-  _srDestroyRasteriser();
-  _srFBDestroy();
+    _srDestroyRasteriser();
+    _srFBDestroy();
 }
 
 srSize srGetWidth()
 {
-  return _sr.width;
+    return _sr.width;
 }
 
 srSize srGetHeight()
 {
-  return _sr.height;
+    return _sr.height;
 }

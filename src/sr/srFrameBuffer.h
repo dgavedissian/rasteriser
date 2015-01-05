@@ -5,8 +5,8 @@
 
 enum
 {
-  SR_CTX_SDL,
-  SR_CTX_TERM
+    SR_CTX_SDL,
+    SR_CTX_TERM
 };
 
 /// Internal: Creates the output frame buffer.

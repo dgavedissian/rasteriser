@@ -56,114 +56,107 @@ kmMat4 mvp;
 // Shader
 typedef struct
 {
-  kmVec3 position;
+    kmVec3 position;
 } VSIn;
 
 typedef struct
 {
-  kmVec3 position;
+    kmVec3 position;
 } VSOut;
 
 void vs(float* _in, float* _out)
 {
-  VSIn* in = (VSIn*)_in;
-  VSOut* out = (VSOut*)_out;
-  kmVec3TransformCoord(&out->position, &in->position, &mvp);
+    VSIn* in = (VSIn*)_in;
+    VSOut* out = (VSOut*)_out;
+    kmVec3TransformCoord(&out->position, &in->position, &mvp);
 }
 
 void fs(float* _in, float* _out)
 {
-  VSOut* in = (VSOut*)_in;
-  srColour* out = (srColour*)_out;
+    VSOut* in = (VSOut*)_in;
+    srColour* out = (srColour*)_out;
 
-  out->r = in->position.x / width;
-  out->g = 0.0f;
-  out->b = in->position.y / height;
-  out->a = 1.0f;
+    out->r = in->position.x / width;
+    out->g = 0.0f;
+    out->b = in->position.y / height;
+    out->a = 1.0f;
 }
 
 void init()
 {
-  srVertexAttribute in[] = {
-    {SR_VERT_POSITION, 3}
-  };
-  srVertexAttribute out[] = {
-    {SR_VERT_POSITION, 3}
-  };
+    srVertexAttribute in[] = {{SR_VERT_POSITION, 3}};
+    srVertexAttribute out[] = {{SR_VERT_POSITION, 3}};
 
-  srCreateVertexArray(&vao, in, 1, out, 1, cube, 36);
+    srCreateVertexArray(&vao, in, 1, out, 1, cube, 36);
 }
 
 void cleanup()
 {
-  srDestroyVertexArray(&vao);
+    srDestroyVertexArray(&vao);
 }
 
 void render(float r)
 {
-  // Calculate model-view-projection matrix
-  kmMat4RotationY(&mvp, r);
-  kmMat4Multiply(&mvp, &view, &mvp);
-  kmMat4Multiply(&mvp, &proj, &mvp);
+    // Calculate model-view-projection matrix
+    kmMat4RotationY(&mvp, r);
+    kmMat4Multiply(&mvp, &view, &mvp);
+    kmMat4Multiply(&mvp, &proj, &mvp);
 
-  // Draw
-  srSetShader(&vs, &fs);
-  srDrawVertexArray(SR_TRIANGLE_LIST, &vao);
+    // Draw
+    srSetShader(&vs, &fs);
+    srDrawVertexArray(SR_TRIANGLE_LIST, &vao);
 }
 
 int main(int argc, char** argv)
 {
-  // Get width and height
-  if (argc > 1)
-  {
-    width = atoi(argv[1]);
-    if (argc > 2)
-      height = atoi(argv[2]);
-  }
+    // Get width and height
+    if (argc > 1)
+    {
+        width = atoi(argv[1]);
+        if (argc > 2)
+            height = atoi(argv[2]);
+    }
 
-  // Set up the rasteriser
-  srInitParams params;
-  params.width = width;
-  params.height = height;
-  params.outputContext = SR_CTX_SDL;
-  srInit(&params);
-  width = srGetWidth();
-  height = srGetHeight();
-  srSetMaxFPS(60);
-  //srSetRenderState(SR_WIREFRAME, SR_TRUE);
-  
-  // Set projectino matrix
-  float aspect = (float)width / height;
-  kmMat4PerspectiveProjection(&proj, 60.0f, aspect, 0.1f, 100.0f);
+    // Set up the rasteriser
+    srInitParams params;
+    params.width = width;
+    params.height = height;
+    params.outputContext = SR_CTX_SDL;
+    srInit(&params);
+    width = srGetWidth();
+    height = srGetHeight();
+    srSetMaxFPS(60);
+    // srSetRenderState(SR_WIREFRAME, SR_TRUE);
 
-  // Initialise the scene
-  init();
+    // Set projectino matrix
+    float aspect = (float)width / height;
+    kmMat4PerspectiveProjection(&proj, 60.0f, aspect, 0.1f, 100.0f);
 
-  // Enter rendering loop
-  kmVec3 eye;
-  kmVec3 centre;
-  kmVec3 up;
-  float angle = 0.0f;
-  while (srContextActive())
-  {
-    // Calculate view matrix
-    kmMat4LookAt(&view,
-      kmVec3Fill(&eye, 0.0f, 0.0f, 3.0f),
-      kmVec3Fill(&centre, 0.0f, 0.0f, 0.0f),
-      kmVec3Fill(&up, 0.0f, 1.0f, 0.0f)
-      );
+    // Initialise the scene
+    init();
 
-    // Draw scene
-    srBegin(0);
-    render(angle);
-    srEnd();
+    // Enter rendering loop
+    kmVec3 eye;
+    kmVec3 centre;
+    kmVec3 up;
+    float angle = 0.0f;
+    while (srContextActive())
+    {
+        // Calculate view matrix
+        kmMat4LookAt(&view, kmVec3Fill(&eye, 0.0f, 0.0f, 3.0f),
+                     kmVec3Fill(&centre, 0.0f, 0.0f, 0.0f), kmVec3Fill(&up, 0.0f, 1.0f, 0.0f));
 
-    // Update rotation
-    angle += M_PI / 2.0f * 0.01f;
-  }
+        // Draw scene
+        srBegin(0);
+        render(angle);
+        srEnd();
 
-  // Clean-up
-  cleanup();
-  srShutdown();
-  return 0;
+        // Update rotation
+        angle += M_PI / 2.0f * 0.01f;
+    }
+
+    // Clean-up
+    cleanup();
+    srShutdown();
+    return 0;
 }

@@ -21,12 +21,11 @@ typedef unsigned int srSize;
 
 // Hex Colour Manipulation
 #define SR_HEX_RGBA(r, g, b, a) \
-  (((r) & 0xFF) << 24) + (((g) & 0xFF) << 16) \
-  + (((b) & 0xFF) << 8) + ((a) & 0xFF)
+    (((r)&0xFF) << 24) + (((g)&0xFF) << 16) + (((b)&0xFF) << 8) + ((a)&0xFF)
 #define SR_HEX_GETR(hex) (((hex) >> 24) & 0xFF)
 #define SR_HEX_GETG(hex) (((hex) >> 16) & 0xFF)
 #define SR_HEX_GETB(hex) (((hex) >> 8) & 0xFF)
-#define SR_HEX_GETA(hex) ((hex) & 0xFF)
+#define SR_HEX_GETA(hex) ((hex)&0xFF)
 
 // Maths Functions
 #define SR_LERP(a, b, x) ((a) + ((b) - (a)) * (x))

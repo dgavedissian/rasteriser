@@ -6,27 +6,27 @@
 // Render states
 enum
 {
-  SR_WIREFRAME = 0,
-  SR_RENDER_STATE_COUNT
+    SR_WIREFRAME = 0,
+    SR_RENDER_STATE_COUNT
 };
 
 // Primitive types
 enum
 {
-  SR_POINT_LIST,
-  SR_LINE_LIST,
-  SR_LINE_STRIP,
-  SR_TRIANGLE_LIST,
-  SR_TRIANGLE_STRIP
+    SR_POINT_LIST,
+    SR_LINE_LIST,
+    SR_LINE_STRIP,
+    SR_TRIANGLE_LIST,
+    SR_TRIANGLE_STRIP
 };
 
 // Vertex attributes
 enum
 {
-  SR_VERT_POSITION,
-  SR_VERT_NORMAL,
-  SR_VERT_COLOUR,
-  SR_VERT_UV
+    SR_VERT_POSITION,
+    SR_VERT_NORMAL,
+    SR_VERT_COLOUR,
+    SR_VERT_UV
 };
 
 /// Internal: Set up the rasteriser for rendering
@@ -44,22 +44,22 @@ void srSetRenderState(uint state, uint value);
 // Vertex layout
 typedef struct
 {
-  srEnum type;
-  srSize size;
+    srEnum type;
+    srSize size;
 } srVertexAttribute;
 
 // Vertex array
 typedef struct
 {
-  srVertexAttribute* inLayout;
-  srVertexAttribute* outLayout;
-  srSize inLayoutCount;
-  srSize outLayoutCount;
+    srVertexAttribute* inLayout;
+    srVertexAttribute* outLayout;
+    srSize inLayoutCount;
+    srSize outLayoutCount;
 
-  float* vertexData;
-  srSize inVertexSize;
-  srSize outVertexSize;
-  srSize vertexCount;
+    float* vertexData;
+    srSize inVertexSize;
+    srSize outVertexSize;
+    srSize vertexCount;
 } srVertexArray;
 
 /// Create vertex array
@@ -69,14 +69,9 @@ typedef struct
 /// @param attribCount Number of vertex attribute objects
 /// @param vertexData Vertex data
 /// @param vertexCount Number of vertices
-void srCreateVertexArray(
-    srVertexArray* out,
-    srVertexAttribute inLayout[],
-    srSize inLayoutCount,
-    srVertexAttribute outLayout[],
-    srSize outLayoutCount,
-    float* vertexData,
-    srSize vertexCount);
+void srCreateVertexArray(srVertexArray* out, srVertexAttribute inLayout[], srSize inLayoutCount,
+                         srVertexAttribute outLayout[], srSize outLayoutCount, float* vertexData,
+                         srSize vertexCount);
 
 /// Destroy a vertex array created with srCreateVertexArray
 ///
